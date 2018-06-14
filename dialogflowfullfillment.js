@@ -8,9 +8,6 @@ const {Card, Suggestion} = require('dialogflow-fulfillment');
 process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
 
 
-let AWS = require("aws-sdk");
-let lambda = new AWS.Lambda({region: 'us-east-1', apiVersion: '2015-03-31'});
-
 function askForBirthDay(agent) {
     agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'date'}});
     agent.add('What is the date of birth? For example, 1st of January, 1990.');
@@ -224,7 +221,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
                 let speech;
                 const requested_planet = context_params.planet;
                 result.forEach((characteristicInSign) => {
-                    if (requested_planet === characteristicInSign.characteristic) {
+                    if (requested_planet.toUpperCase() === characteristicInSign.characteristic.toUpperCase()) {
                         if (characteristicInSign.sign.includes('-')) {
                             if (!birthTime) return askForBirthTime(agent);
                             if (!birthPlaceFullName) return askForBirthPlace(agent);
@@ -236,7 +233,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
                             }
                             speech = 'Apologies, I checked again for you, but I really need to know ' + whats_missing + ' of birth. Try to get this information and come back to me.';
                         } else {
-                            speech = 'The ' + requested_planet + ' sign of a person born on ' +
+                            speech = 'The ' + requested_planet.charAt(0).toUpperCase() + requested_planet.slice(1) + ' sign of a person born on ' +
                                 (withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString('en-US', {
                                     month: "long",
                                     day: "numeric"

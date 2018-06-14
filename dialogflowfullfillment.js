@@ -6,17 +6,12 @@ const {WebhookClient} = require('dialogflow-fulfillment');
 const {Card, Suggestion} = require('dialogflow-fulfillment');
 
 process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
-// let PropertiesReader = require('properties-reader');
-// let properties = PropertiesReader('servicekeys.file');
-// let google_service_key = properties.get('google.service.key');
-let googleMapsClient = require('@google/maps').createClient({key: google_service_key, Promise: Promise});
-// let flatlibKeyId = properties.get('flatlib.lambda.keyId');
-// let flatlibSecretKey = properties.get('flatlib.lambda.key');
+
+
 let AWS = require("aws-sdk");
 let lambda = new AWS.Lambda({region: 'us-east-1', apiVersion: '2015-03-31'});
 
 function askForBirthDay(agent) {
-    addSpokenContext(agent);
     agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'date'}});
     agent.add('What is the date of birth? For example, 1st of January, 1990.');
     agent.add(new Suggestion('1990'));
@@ -25,16 +20,12 @@ function askForBirthDay(agent) {
 }
 
 function askForBirthYear(agent) {
-    addSpokenContext(agent);
     agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'year'}});
     agent.add('What is the year of birth? For example, 1990.');
     agent.add(new Suggestion('1990'));
-    agent.add(new Suggestion('5000'));
-    agent.add(new Suggestion('I don\'t know'));
 }
 
 function askForBirthTime(agent) {
-    addSpokenContext(agent);
     agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'time'}});
     agent.add('Do you know the time of birth? For example, 9 PM. If you are unsure, you can say I don\'t know.');
     agent.add(new Suggestion('7 20 PM'));
@@ -42,7 +33,6 @@ function askForBirthTime(agent) {
 }
 
 function askForBirthPlace(agent) {
-    addSpokenContext(agent);
     agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'place'}});
     agent.add('Do you know the city, or country of birth? For example, Paris. If you are unsure, you can say I don\'t know.');
     agent.add(new Suggestion('Paris'));
@@ -51,33 +41,21 @@ function askForBirthPlace(agent) {
 }
 
 function confirmBirthDay(agent, birthDay) {
-    addSpokenContext(agent);
     agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'toConfirmBirthDate'}});
-    agent.add('Did you say ' + birthDay + '?');
+    agent.add('Is it ' + birthDay + '?');
     agent.add(new Suggestion('Yes'));
     agent.add(new Suggestion('No'));
 }
 
-function addSpokenContext(agent) {
-    let context = agent.getContext('conversation');
-    const birthDay = context.parameters.birthDay;
-    const birthYear = context.parameters.birthYear;
-    const birthTime = context.parameters.birthTime;
-    const birthPlace = context.parameters.birthPlace;
-    const initialIntent = context.parameters.initialIntent;
-    const askedFor = context.parameters.askedFor;
-    // agent.add('Intent ' + initialIntent + '; country ' + agent.parameters.birthCountry + '; city ' + agent.parameters.birthCity + '; birthday ' + birthDay + ' year ' + birthYear + ' time ' + birthTime + ' place ' + birthPlace + ' asked for ' + askedFor);
-}
-
 function askToConfirmOrForYear(agent) {
-    let parameters = agent.getContext('conversation').parameters;
-    const initialIntent = parameters.initialIntent;
-    let birthDay = (agent.parameters.birthDay) ? agent.parameters.birthDay : parameters.birthDay;
-    const birthYear = agent.parameters.birthYear;
+    let contextParameters = agent.getContext('conversation').parameters;
+    const initialIntent = contextParameters.initialIntent;
+    let birthDay = (agent.parameters.birthDay) ? agent.parameters.birthDay : contextParameters.birthDay;
+    const birthYear = (agent.parameters.birthYear) ? agent.parameters.birthYear : contextParameters.birthYear;
     if (!birthYear) {
         if (withinAYearFromNow(birthDay)) {
-            if ('PlanetSign' === initialIntent && agent.parameters.planet === 'Sun') {//2019-01-01, Sun sign
-                return confirmBirthDay(agent, birthDay.substring(4, birthDay.length));
+            if ('PlanetSign' === initialIntent && contextParameters.planet === 'Sun') {//2019-01-01, Sun sign
+                return confirmBirthDay(agent, new Date(birthDay).toLocaleString('en-US', {month: "long", day: "numeric"}));
             } else {//2019-01-01, Full chart
                 return askForBirthYear(agent);
             }
@@ -85,7 +63,14 @@ function askToConfirmOrForYear(agent) {
             return confirmBirthDay(agent, birthDay);
         }
     } else {//2019-01-01, 1983
-        return confirmBirthDay(agent, birthYear + birthDay.substring(4, birthDay.length));
+        if (birthYear < 1550 || birthYear > 2649) {
+            agent.add("Sorry, I can only check for year of birth between 1550 and 2649. Let's try again. Tell me the year of birth.");
+            agent.add(new Suggestion('1990'));
+        } else {
+            let newBirthDay = birthYear + birthDay.substring(4, birthDay.length);
+            agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthDay: newBirthDay}});
+            return confirmBirthDay(agent, newBirthDay);
+        }
     }
 }
 
@@ -104,9 +89,11 @@ function confirmBirthPlace(agent) {
             let latitude;
             let longitude;
             let fullname;
+            let is_country;
             response.json.results.forEach((place) => {
                 place.address_components[0].types.forEach((actype) => {
                     if ('country' === actype || 'locality' === actype) {
+                        if ('country' === actype) is_country = true;
                         latitude = place.geometry.location.lat;
                         longitude = place.geometry.location.lng;
                         fullname = getFullName(place);
@@ -114,8 +101,7 @@ function confirmBirthPlace(agent) {
                 });
             });
             return resolveTimezone(latitude, longitude).then(function (gmtOffset) {
-                addSpokenContext(agent);
-                agent.add('Is it ' + fullname + '?');
+                agent.add('Is it ' + ((is_country) ? 'country ' : '') + fullname + '?');
                 agent.add(new Suggestion('Yes'));
                 agent.add(new Suggestion('No'));
                 agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthLat: latitude}});
@@ -147,7 +133,7 @@ function resolveTimezone(latitude, longitude) {
 }
 
 function getFullName(place) {
-    let city = null;
+    let city;
     let country = '';
     place.address_components.forEach((address_component) => {
         address_component.types.forEach((address_component_type) => {
@@ -190,45 +176,30 @@ function getChart(birthDate, birthTime, birthLat, birthLng, timezone) {
 
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, response) => {
     const agent = new WebhookClient({request, response});
-
     console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
     console.log('Dialogflow Request body: ' + JSON.stringify(request.body));
 
-    // function tryToSpeakChartSomeParametersUnknown(birthTimeUnknown, birthPlaceUnknown) {
-    //     function tryToSpeakChart() {//overload
-    // }
-
-    function tryToSpeakChart(){
+    function tryToSpeakChart() {
         return tryToSpeakChartWithParams(false, false);
     }
 
-    function tryToSpeakChartWithParams(birthTimeUnknown, birthPlaceUnknown) {//overload
-        let context = agent.getContext('conversation');
-        const initialIntent = context.parameters.initialIntent;
-        const birthDay = context.parameters.birthDay;
-        const birthTime = (birthTimeUnknown) ? 'unknown' : context.parameters.birthTime;
-        const birthPlace = (birthPlaceUnknown) ? 'unknown' : context.parameters.birthPlace;
-        // const birthYear = context.parameters.birthYear;
-        const birthLat = context.parameters.birthLat;
-        const birthLng = context.parameters.birthLng;
-        const birthPlaceFullName = context.parameters.birthPlaceFullName;
-        const birthTimeZoneOffset = context.parameters.birthTimeZoneOffset;
-        if (!birthDay) {
-            return askForBirthDay(agent);
-        }
-        if ('FullChart' === initialIntent) {
+    function tryToSpeakChartWithParams(birthTimeUnknown, birthPlaceUnknown) {
+        let context_params = agent.getContext('conversation').parameters;
+        const birthDay = context_params.birthDay;
+        const birthTime = (birthTimeUnknown) ? 'unknown' : context_params.birthTime;
+        const birthPlace = (birthPlaceUnknown) ? 'unknown' : context_params.birthPlace;
+        const birthPlaceFullName = context_params.birthPlaceFullName;
+        if (!birthDay) return askForBirthDay(agent);
+        if ('FullChart' === context_params.initialIntent) {
             console.log('birthtime' + birthTime);
-            if (!birthTime) {
-                return askForBirthTime(agent);
-            }
-            if (!birthPlace) {
-                return askForBirthPlace(agent);
-            }
-            return getChart(birthDay, birthTime, birthLat, birthLng, birthTimeZoneOffset).then(function (result) {
-                let speech = 'Here is the natal chart of the person born on ' + birthDay;
-                if (birthTime && birthTime !== 'unknown') speech += ' at ' + birthTime.toLocaleString('en-US', {hour: 'numeric', hour12: true});
+            if (!birthTime) return askForBirthTime(agent);
+            if (!birthPlace) return askForBirthPlace(agent);
+            return getChart(birthDay, birthTime, context_params.birthLat, context_params.birthLng, context_params.birthTimeZoneOffset).then(function (result) {
+                let speech = 'Here is the natal chart of the person born on ' +
+                    (withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString('en-US', {month: "long", day: "numeric"}) : birthDay);
+                if (birthTime && birthTime !== 'unknown') speech += ' at ' +
+                    new Date(birthDay + ' ' + birthTime).toLocaleString('en-US', {hour: 'numeric', hour12: true, minute: 'numeric'});
                 if (birthPlaceFullName) speech += ' in ' + birthPlaceFullName;
-                if (birthPlaceFullName) speech += ' lat ' + birthLat + ' lng ' + birthLng; // todo this is temp
                 speech += ': \n';
                 let missing = '';
                 result.forEach((characteristicInSign) => {
@@ -239,24 +210,21 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
                     }
 
                 });
-                if (missing !== '') {
-                    speech += 'Planets that are not mentioned require time or place of birth. Those include ' + missing + 'Ascendant, Midheaven and the other houses.';
-                }
-                addSpokenContext(agent);
+                if (missing !== '') speech += 'Planets that are not mentioned require time or place of birth. Those include ' + missing + 'Ascendant, Midheaven and the other houses.';
                 agent.add(speech);
                 agent.add(new Suggestion('Sun Sign'));
                 agent.add(new Suggestion('Moon Sign'));
                 agent.add(new Suggestion('Full Chart'));
-                agent.setContext({name: 'conversation', lifespan: 0});
+                agent.setContext({name: 'conversation', lifespan: 0});//reset context
             }).catch(function (error) {
                 console.log('ERROR: ' + error);
             });
-        } else if ('PlanetSign' === initialIntent) {
-            return getChart(birthDay, birthTime, birthLat, birthLng, birthTimeZoneOffset).then(function (result) {
+        } else if ('PlanetSign' === context_params.initialIntent) {
+            return getChart(birthDay, birthTime, context_params.birthLat, context_params.birthLng, context_params.birthTimeZoneOffset).then(function (result) {
                 let speech;
-                const planet = context.parameters.planet;
+                const requested_planet = context_params.planet;
                 result.forEach((characteristicInSign) => {
-                    if (planet === characteristicInSign.characteristic) {
+                    if (requested_planet === characteristicInSign.characteristic) {
                         if (characteristicInSign.sign.includes('-')) {
                             if (!birthTime) return askForBirthTime(agent);
                             if (!birthPlaceFullName) return askForBirthPlace(agent);
@@ -266,27 +234,25 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
                                 if (whats_missing !== '') whats_missing += " and ";
                                 whats_missing += 'place';
                             }
-                            whats_missing += ' of birth';
-                            speech = 'Apologies, I checked again for you, but I really need to know ' + whats_missing + '. Try to get this information and come back to me.';
+                            speech = 'Apologies, I checked again for you, but I really need to know ' + whats_missing + ' of birth. Try to get this information and come back to me.';
                         } else {
-                            speech = 'The ' + planet + ' sign of a person born on ' + birthDay;
-                            if (birthTime && birthTime !== 'unknown') speech += ' at ' + birthTime.toLocaleString('en-US', {
-                                hour: 'numeric',
-                                hour12: true
-                            });
+                            speech = 'The ' + requested_planet + ' sign of a person born on ' +
+                                (withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString('en-US', {
+                                    month: "long",
+                                    day: "numeric"
+                                }) : birthDay);
+                            if (birthTime && birthTime !== 'unknown') speech += ' at ' +
+                                new Date(birthDay + ' ' + birthTime).toLocaleString('en-US', {hour: 'numeric', hour12: true, minute: 'numeric'});
                             if (birthPlaceFullName) speech += ' in ' + birthPlaceFullName;
-                            if (birthPlaceFullName) speech += ' lat ' + birthLat + ' lng ' + birthLng; // todo this is temp
-                            speech += ' is ';
-                            speech += characteristicInSign.sign;
+                            speech += ' is ' + characteristicInSign.sign;
                         }
                     }
                 });
-                addSpokenContext(agent);
                 agent.add(speech);
-                agent.setContext({name: 'conversation', lifespan: 0});
                 agent.add(new Suggestion('Sun Sign'));
                 agent.add(new Suggestion('Moon Sign'));
                 agent.add(new Suggestion('Full Chart'));
+                agent.setContext({name: 'conversation', lifespan: 0});
             }).catch(function (error) {
                 console.log('ERROR: ' + error);
             });
@@ -294,17 +260,12 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     }
 
     function handleIDontKnowResponse(agent) {
-        let context = agent.getContext('conversation');
-        // let birthDay = context.parameters.birthDay;
-        // let birthYear = context.parameters.birthYear;
-        const initialIntent = context.parameters.initialIntent;
-        // let birthTime = context.parameters.birthTime;
-        // let birthPlace = context.parameters.birthPlace;
-        let askedFor = context.parameters.askedFor;
+        let context_parameters = agent.getContext('conversation').parameters;
+        let askedFor = context_parameters.askedFor;
         if ('date' === askedFor) {
             return askForBirthDay(agent);
         } else if ('year' === askedFor) {
-            if ('PlanetSign' === initialIntent && agent.parameters.planet === 'Sun') {//Sun sign
+            if ('PlanetSign' === context_parameters.initialIntent && agent.parameters.planet === 'Sun') {//Sun sign
                 return confirmBirthDay(agent);
             }
             return askForBirthYear(agent);
@@ -318,12 +279,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
         return tryToSpeakChartWithParams(false, false);
     }
 
-
     let intentMap = new Map();
-    // intentMap.set('Default Welcome Intent', welcome);
-    // intentMap.set('Default Fallback Intent', fallback);
-    // intentMap.set('Planet Sign Intent', planetSign);
-    // intentMap.set('Full Chart Intent', fullChart);
     intentMap.set('Birth Day Intent', askToConfirmOrForYear);
     intentMap.set('Birth Day Intent - Confirm Date', tryToSpeakChart);
     intentMap.set('Birth Year Intent', askToConfirmOrForYear);

@@ -8,12 +8,13 @@ const {Card, Suggestion} = require('dialogflow-fulfillment');
 process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
 
 
+let AWS = require("aws-sdk");
+let lambda = new AWS.Lambda({region: 'us-east-1', apiVersion: '2015-03-31'});
+
 function askForBirthDay(agent) {
     agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'date'}});
     agent.add('What is the date of birth? For example, 1st of January, 1990.');
-    agent.add(new Suggestion('1990'));
     agent.add(new Suggestion('1st of January, 1990'));
-    agent.add(new Suggestion('I don\'t know'));
 }
 
 function askForBirthYear(agent) {
@@ -49,6 +50,7 @@ function askToConfirmOrForYear(agent) {
     const initialIntent = contextParameters.initialIntent;
     let birthDay = (agent.parameters.birthDay) ? agent.parameters.birthDay : contextParameters.birthDay;
     const birthYear = (agent.parameters.birthYear) ? agent.parameters.birthYear : contextParameters.birthYear;
+    console.log('askToConfirmOrForYear(): birth day - ' + birthDay + '; birth year - ' + birthYear);
     if (!birthYear) {
         if (withinAYearFromNow(birthDay)) {
             if ('PlanetSign' === initialIntent && contextParameters.planet === 'Sun') {//2019-01-01, Sun sign
@@ -79,9 +81,10 @@ function withinAYearFromNow(dateStr) {
 }
 
 function confirmBirthPlace(agent) {
-    let birthPlace = (agent.parameters.birthCity) ? agent.parameters.birthCity : agent.parameters.birthCountry;
-    agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthPlace: birthPlace}});
-    return googleMapsClient.geocode({address: birthPlace}).asPromise()
+    let birth_place = (agent.parameters.birthCity) ? agent.parameters.birthCity : agent.parameters.birthCountry;
+    console.log("confirmBirthPlace(): birth_place - " + birth_place);
+    agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthPlace: birth_place}});
+    return googleMapsClient.geocode({address: birth_place}).asPromise()
         .then((response) => {
             let latitude;
             let longitude;
@@ -145,36 +148,40 @@ function getFullName(place) {
     return (city) ? city + ", in " + country : country;
 }
 
-function getChart(birthDate, birthTime, birthLat, birthLng, timezone) {
+function getChart(birthDay, birthTime, birthLat, birthLng, timezone) {
     let pullResults;
     let pullParams = {
         FunctionName: 'flatlib',
         InvocationType: 'RequestResponse',
         LogType: 'None',
-        Payload: JSON.stringify({'date': birthDate, 'lng': birthLng, 'lat': birthLat, 'time': birthTime, 'timezone': timezone})
+        Payload: JSON.stringify({'date': birthDay.replace(/-/g , "/"), 'lng': birthLng, 'lat': birthLat, 'time': birthTime, 'timezone': timezone})
     };
-    return new Promise((resolve, reject) => {
-            return resolve(JSON.parse("[  {    \"characteristic\": \"Sun\",    \"sign\": \"Gemini\",    \"angle\": \"10.53000876876159\"  },  {    \"characteristic\": \"Moon\",    \"sign\": \"Aries\",    \"angle\": \"1.5793052788431055\"  },  {    \"characteristic\": \"Mercury\",    \"sign\": \"Gemini\",    \"angle\": \"21.57676311160961\"  },  {    \"characteristic\": \"Venus\",    \"sign\": \"Cancer\",    \"angle\": \"12.863687119768556\"  },  {    \"characteristic\": \"Mars\",    \"sign\": \"Capricorn\",    \"angle\": \"22.751005857916653\"  },  {    \"characteristic\": \"Jupiter\",    \"sign\": \"Pisces\",    \"angle\": \"20.21867988206344\"  },  {    \"characteristic\": \"Saturn\",    \"sign\": \"Sagittarius\",    \"angle\": \"6.0934773435272405\"  },  {    \"characteristic\": \"Uranus\",    \"sign\": \"Sagittarius\",    \"angle\": \"20.798915632512887\"  },  {    \"characteristic\": \"Neptune\",    \"sign\": \"Capricorn\",    \"angle\": \"5.080841892187436\"  },  {    \"characteristic\": \"Pluto\",    \"sign\": \"Scorpio\",    \"angle\": \"5.043025700925483\"  },  {    \"characteristic\": \"Chiron\",    \"sign\": \"Gemini\",    \"angle\": \"14.759417769021368\"  },  {    \"characteristic\": \"Lilith\",    \"sign\": \"Pisces\",    \"angle\": \"12.152008390294213\"  },  {    \"characteristic\": \"House1\",    \"sign\": \"Leo\",    \"angle\": \"28.52049792057312\"  },  {    \"characteristic\": \"House2\",    \"sign\": \"Virgo\",    \"angle\": \"28.9464302344997\"  },  {    \"characteristic\": \"House3\",    \"sign\": \"Libra\",    \"angle\": \"29.45809962602985\"  },  {    \"characteristic\": \"House4\",    \"sign\": \"Scorpio\",    \"angle\": \"28.009748474196414\"  },  {    \"characteristic\": \"House5\",    \"sign\": \"Sagittarius\",    \"angle\": \"27.60751484818627\"  },  {    \"characteristic\": \"House6\",    \"sign\": \"Capricorn\",    \"angle\": \"26.98758329148177\"  },  {    \"characteristic\": \"House7\",    \"sign\": \"Aquarius\",    \"angle\": \"28.52049792057312\"  },  {    \"characteristic\": \"House8\",    \"sign\": \"Pisces\",    \"angle\": \"28.9464302344997\"  },  {    \"characteristic\": \"House9\",    \"sign\": \"Aries\",    \"angle\": \"29.45809962602982\"  },  {    \"characteristic\": \"House10\",    \"sign\": \"Taurus\",    \"angle\": \"28.009748474196407\"  },  {    \"characteristic\": \"House11\",    \"sign\": \"Gemini\",    \"angle\": \"27.607514848186284\"  },  {    \"characteristic\": \"House12\",    \"sign\": \"Cancer\",    \"angle\": \"26.987583291481798\"  }]"));
+    console.log("--------- getChart(): flatlib request - " + pullParams.Payload);
+    return new Promise(
+        (resolve, reject) => {
+            //         return resolve(JSON.parse("[  {    \"characteristic\": \"Sun\",    \"sign\": \"Gemini\",    \"angle\": \"10.53000876876159\"  },  {    \"characteristic\": \"Moon\",    \"sign\": \"Aries\",    \"angle\": \"1.5793052788431055\"  },  {    \"characteristic\": \"Mercury\",    \"sign\": \"Gemini\",    \"angle\": \"21.57676311160961\"  },  {    \"characteristic\": \"Venus\",    \"sign\": \"Cancer\",    \"angle\": \"12.863687119768556\"  },  {    \"characteristic\": \"Mars\",    \"sign\": \"Capricorn\",    \"angle\": \"22.751005857916653\"  },  {    \"characteristic\": \"Jupiter\",    \"sign\": \"Pisces\",    \"angle\": \"20.21867988206344\"  },  {    \"characteristic\": \"Saturn\",    \"sign\": \"Sagittarius\",    \"angle\": \"6.0934773435272405\"  },  {    \"characteristic\": \"Uranus\",    \"sign\": \"Sagittarius\",    \"angle\": \"20.798915632512887\"  },  {    \"characteristic\": \"Neptune\",    \"sign\": \"Capricorn\",    \"angle\": \"5.080841892187436\"  },  {    \"characteristic\": \"Pluto\",    \"sign\": \"Scorpio\",    \"angle\": \"5.043025700925483\"  },  {    \"characteristic\": \"Chiron\",    \"sign\": \"Gemini\",    \"angle\": \"14.759417769021368\"  },  {    \"characteristic\": \"Lilith\",    \"sign\": \"Pisces\",    \"angle\": \"12.152008390294213\"  },  {    \"characteristic\": \"House1\",    \"sign\": \"Leo\",    \"angle\": \"28.52049792057312\"  },  {    \"characteristic\": \"House2\",    \"sign\": \"Virgo\",    \"angle\": \"28.9464302344997\"  },  {    \"characteristic\": \"House3\",    \"sign\": \"Libra\",    \"angle\": \"29.45809962602985\"  },  {    \"characteristic\": \"House4\",    \"sign\": \"Scorpio\",    \"angle\": \"28.009748474196414\"  },  {    \"characteristic\": \"House5\",    \"sign\": \"Sagittarius\",    \"angle\": \"27.60751484818627\"  },  {    \"characteristic\": \"House6\",    \"sign\": \"Capricorn\",    \"angle\": \"26.98758329148177\"  },  {    \"characteristic\": \"House7\",    \"sign\": \"Aquarius\",    \"angle\": \"28.52049792057312\"  },  {    \"characteristic\": \"House8\",    \"sign\": \"Pisces\",    \"angle\": \"28.9464302344997\"  },  {    \"characteristic\": \"House9\",    \"sign\": \"Aries\",    \"angle\": \"29.45809962602982\"  },  {    \"characteristic\": \"House10\",    \"sign\": \"Taurus\",    \"angle\": \"28.009748474196407\"  },  {    \"characteristic\": \"House11\",    \"sign\": \"Gemini\",    \"angle\": \"27.607514848186284\"  },  {    \"characteristic\": \"House12\",    \"sign\": \"Cancer\",    \"angle\": \"26.987583291481798\"  }]"));
+            //     }
+            lambda.invoke(pullParams,
+                function (error, data) {
+                    if (error) {
+                        return reject(error);
+                    }
+                    pullResults = JSON.parse(data.Payload);
+                    console.log('chart from lambda:');
+                    console.log(pullResults);
+                    return resolve(pullResults);
+                }
+            )
         }
-        // lambda.invoke(pullParams,
-        //     function (error, data) {
-        //         if (error) {
-        //             return reject(error);
-        //         }
-        //         pullResults = JSON.parse(data.Payload);
-        //         console.log('lambda responded');
-        //         console.log(pullResults);
-        // return resolve(pullResults);
-        // }
-        // )
-        // }
     );
 }
 
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, response) => {
     const agent = new WebhookClient({request, response});
     console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
-    console.log('Dialogflow Request body: ' + JSON.stringify(request.body));
+    let body = request.body;
+    console.log('Dialogflow Request body: ' + JSON.stringify(body));
+    console.log('LOCALE: ' + body.originalRequest.data.user.locale);
 
     function tryToSpeakChart() {
         return tryToSpeakChartWithParams(false, false);
@@ -186,9 +193,9 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
         const birthTime = (birthTimeUnknown) ? 'unknown' : context_params.birthTime;
         const birthPlace = (birthPlaceUnknown) ? 'unknown' : context_params.birthPlace;
         const birthPlaceFullName = context_params.birthPlaceFullName;
+        console.log('tryToSpeakChart() - day: ' + birthDay + ', time: ' + birthTime + ', place: ' + birthPlace + ', placeFullName: ' + birthPlaceFullName);
         if (!birthDay) return askForBirthDay(agent);
         if ('FullChart' === context_params.initialIntent) {
-            console.log('birthtime' + birthTime);
             if (!birthTime) return askForBirthTime(agent);
             if (!birthPlace) return askForBirthPlace(agent);
             return getChart(birthDay, birthTime, context_params.birthLat, context_params.birthLng, context_params.birthTimeZoneOffset).then(function (result) {
@@ -217,17 +224,17 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
                 console.log('ERROR: ' + error);
             });
         } else if ('PlanetSign' === context_params.initialIntent) {
-            return getChart(birthDay, birthTime, context_params.birthLat, context_params.birthLng, context_params.birthTimeZoneOffset).then(function (result) {
+            return getChart(birthDay, (birthTime === 'unknown') ? null : birthTime, context_params.birthLat, context_params.birthLng, context_params.birthTimeZoneOffset).then(function (result) {
                 let speech;
                 const requested_planet = context_params.planet;
                 result.forEach((characteristicInSign) => {
                     if (requested_planet.toUpperCase() === characteristicInSign.characteristic.toUpperCase()) {
                         if (characteristicInSign.sign.includes('-')) {
                             if (!birthTime) return askForBirthTime(agent);
-                            if (!birthPlaceFullName) return askForBirthPlace(agent);
+                            if (!birthPlace) return askForBirthPlace(agent);
                             let whats_missing = '';
                             if (birthTime === 'unknown') whats_missing = 'time ';
-                            if (birthPlaceFullName === 'unknown') {
+                            if (birthPlace === 'unknown') {
                                 if (whats_missing !== '') whats_missing += " and ";
                                 whats_missing += 'place';
                             }
@@ -259,6 +266,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     function handleIDontKnowResponse(agent) {
         let context_parameters = agent.getContext('conversation').parameters;
         let askedFor = context_parameters.askedFor;
+        console.log('handleIDontKnowResponse() - asked for: ' + askedFor);
         if ('date' === askedFor) {
             return askForBirthDay(agent);
         } else if ('year' === askedFor) {

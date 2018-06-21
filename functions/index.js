@@ -7,8 +7,15 @@ const {Card, Suggestion} = require('dialogflow-fulfillment');
 
 process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
 
+let PropertiesReader = require('properties-reader');
+let properties = PropertiesReader('servicekeys.file');
+let google_service_key = properties.get('google.service.key');
+let flatlibKeyId = properties.get('flatlib.lambda.keyId');
+let flatlibSecretKey = properties.get('flatlib.lambda.key');
 
+let googleMapsClient = require('@google/maps').createClient({key: google_service_key, Promise: Promise});
 let AWS = require("aws-sdk");
+AWS.config.update({accessKeyId: flatlibKeyId, secretAccessKey: flatlibSecretKey});
 let lambda = new AWS.Lambda({region: 'us-east-1', apiVersion: '2015-03-31'});
 
 function askForBirthDay(agent) {
@@ -228,7 +235,7 @@ function isSun(requested_planet) {
     return 'sun' === requested_planet || 'zodiac' === requested_planet || 'astrology' === requested_planet || 'astrological' === requested_planet;
 }
 
-exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, response) => {
+exports.natal_charts_fulfillment = functions.https.onRequest((request, response) => {
     const agent = new WebhookClient({request, response});
     console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
     let body = request.body;

@@ -1,0 +1,10 @@
+{
+  "WHATS_THE_DATE_OF_BIRTH": "What is the date of birth? For example, 1st of January, 1990.",
+  "WHATS_THE_YEAR_OF_BIRTH": "What is the year of birth? For example, 1990.",
+  "WHATS_THE_TIME_OF_BIRTH": "What's the time of birth? For example, 9 PM. If you are unsure, you can say I don't know.",
+  "WHATS_THE_PLACE_OF_BIRTH": "What's the city, or country of birth? For example, Paris. If you are unsure, you can say I don't know.",
+  "IS_IT_DATE": "Is it %s?",
+
+
+  "I_DONT_KNOW": "I don't know"
+}

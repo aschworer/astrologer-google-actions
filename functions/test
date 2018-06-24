@@ -1,0 +1,2 @@
+const serv = require('./googleservices');
+console.log(serv.confirmBirthPlace('Sydney', 'en_EN'));

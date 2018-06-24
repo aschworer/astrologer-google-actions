@@ -9,39 +9,42 @@ process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
 const i18n = require('i18n');
 // const moment = require('moment');
 i18n.configure({
-    locales: ['en-US', 'en-GB', 'de-DE'],
+    locales: ['en-US', 'de-DE', 'fr-FR', 'ru-RU'],
     directory: __dirname + '/locales',
     defaultLocale: 'en-US'
 });
 
-// const dialogflow = require('dialogflow');
-// const app = dialogflow({debug: true});
-// app.middleware((conv) => {
-//     i18n.setLocale(conv.user.locale);
-//     moment.locale(conv.user.locale);
-// });
-i18n.setLocale("en-US");
 
 let utils = require('./utils');
 let location_service = require('./googleservices');
 let charts_service = require('./natalchartservices');
 console.log('--------------------------------deployed-----------------------------------------');
 
-// console.log(i18n.__('IS_IT_DATE', '20 nov'));
-const i_dont_know_sugg = new Suggestion(i18n.__('I_DONT_KNOW'));
-
+// console.log(i18n.__("OBJECT_IN_SIGN", i18n.__('Lilith'), i18n.__('Scorpio')));
 exports.natal_charts_fulfillment = functions.https.onRequest((request, response) => {
     const agent = new WebhookClient({request, response});
     console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
     let body = request.body;
-    console.log('Dialogflow Request body: LOCALE: ' + body.originalRequest.data.user.locale + ' ' + JSON.stringify(body));
+    let locale = body.originalRequest.data.user.locale;
+
+    i18n.setLocale(locale);
+    const i_dont_know_sugg = new Suggestion(i18n.__('I_DONT_KNOW'));
+    const year_sugg = new Suggestion(i18n.__("YEAR_EXAMPLE"));
+    const full_date_sugg = new Suggestion(i18n.__("FULL_DATE_EXAMPLE"));
+    const time_sugg = new Suggestion(i18n.__("TIME_EXAMPLE"));
+    const city_sugg = new Suggestion(i18n.__("CITY_EXAMPLE"));
+    const country_sugg = new Suggestion(i18n.__("COUNTRY_EXAMPLE"));
+    const yes_sugg = new Suggestion(i18n.__("YES"));
+    const no_sugg = new Suggestion(i18n.__("NO"));
+
+    console.log('Dialogflow Request body: LOCALE: ' + locale + ' ' + JSON.stringify(body));
 
     function askForBirthDay(agent) {
         agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'date'}});
         let return_speech = i18n.__('WHATS_THE_DATE_OF_BIRTH');
         console.log('askForBirthDay return speech - ', return_speech);
         agent.add(return_speech);
-        agent.add(new Suggestion('1st of January, 1990'));
+        agent.add(full_date_sugg);
     }
 
     function askForBirthYear(agent) {
@@ -49,7 +52,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         let return_speech = i18n.__('WHATS_THE_YEAR_OF_BIRTH');
         console.log('askForBirthYear return speech - ', return_speech);
         agent.add(return_speech);
-        agent.add(new Suggestion('1990'));
+        agent.add(year_sugg);
     }
 
     function askForBirthTime(agent) {
@@ -57,7 +60,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         let return_speech = i18n.__('WHATS_THE_TIME_OF_BIRTH');
         console.log('askForBirthTime() return speech - ', return_speech);
         agent.add(return_speech);
-        agent.add(new Suggestion('7 20 PM'));
+        agent.add(time_sugg);
         agent.add(i_dont_know_sugg);
     }
 
@@ -66,18 +69,18 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         let return_speech = i18n.__('WHATS_THE_PLACE_OF_BIRTH');
         console.log('askForBirthPlace return speech - ', return_speech);
         agent.add(return_speech);
-        agent.add(new Suggestion('Paris'));
-        agent.add(new Suggestion('Australia'));
+        agent.add(city_sugg);
+        agent.add(country_sugg);
         agent.add(i_dont_know_sugg);
     }
 
     function confirmBirthDay(agent, birthDay) {
         agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'toConfirmBirthDate'}});
-        let return_speech = i18n.__('IS_IT_DATE', birthDay);
+        let return_speech = i18n.__('IS_IT_DATE', new Date(birthDay).toLocaleString(locale, {month: "long", day: "numeric", year: "numeric"}));
         console.log('confirmBirthDay return speech - ', return_speech);
         agent.add(return_speech);
-        agent.add(new Suggestion('Yes'));
-        agent.add(new Suggestion('No'));
+        agent.add(yes_sugg);
+        agent.add(no_sugg);
     }
 
     function askToConfirmOrForYear(agent) {
@@ -87,13 +90,13 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         const birthYear = (agent.parameters.birthYear) ? agent.parameters.birthYear : contextParameters.birthYear;
         console.log('askToConfirmOrForYear(): birth day - ' + birthDay + '; birth year - ' + birthYear);
         if (!birthDay) {
-            agent.add("Sorry, I didn't catch that.");
+            agent.add(i18n.__('DIDNT_CATCH_THAT'));
             return askForBirthDay(agent);
         }
         if (!birthYear) {
             if (utils.withinAYearFromNow(birthDay)) {
                 if ('PlanetSign' === initialIntent && utils.isSun(contextParameters.planet)) {//2019-01-01, Sun sign
-                    return confirmBirthDay(agent, new Date(birthDay).toLocaleString('en-US', {month: "long", day: "numeric"}));
+                    return confirmBirthDay(agent, new Date(birthDay).toLocaleString(locale, {month: "long", day: "numeric"}));
                 } else {//2019-01-01, Full chart
                     return askForBirthYear(agent);
                 }
@@ -102,10 +105,10 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             }
         } else {//2019-01-01, 1983
             if (birthYear < 1550 || birthYear > 2649) {
-                let return_speech = "Sorry, I can only check for year of birth between 1550 and 2649. Let's try again. Tell me the year of birth.";
+                let return_speech = i18n.__("DATE_RANGE_ERROR");
                 console.log('birthYear < 1550 || birthYear > 2649 return speech - ', return_speech);
                 agent.add(return_speech);
-                agent.add(new Suggestion('1990'));
+                agent.add(year_sugg);
             } else {
                 let newBirthDay = birthYear + birthDay.substring(4, birthDay.length);
                 agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthDay: newBirthDay}});
@@ -135,7 +138,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         }
         return tryToSpeakChartWithParams(false, false);
     }
-    
+
     function tryToSpeakChart() {
         return tryToSpeakChartWithParams(false, false);
     }
@@ -145,8 +148,8 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         const birthDay = context_params.birthDay;
         const birthTime = (birthTimeUnknown) ? 'unknown' : context_params.birthTime;
         const birthPlace = (birthPlaceUnknown) ? 'unknown' : context_params.birthPlace;
-        const birthPlaceFullName = context_params.birthPlaceFullName;
-        console.log('tryToSpeakChart() - day: ' + birthDay + ', time: ' + birthTime + ', place: ' + birthPlace + ', placeFullName: ' + birthPlaceFullName);
+        const spoken_birth_place = context_params.birthPlaceFullName;
+        console.log('tryToSpeakChart() - day: ' + birthDay + ', time: ' + birthTime + ', place: ' + birthPlace + ', placeFullName: ' + spoken_birth_place);
         if (!birthDay) {
             return askForBirthDay(agent);
         }
@@ -154,21 +157,23 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             if (!birthTime) return askForBirthTime(agent);
             if (!birthPlace) return askForBirthPlace(agent);
             return charts_service.getChart(birthDay, (birthTime === 'unknown') ? null : birthTime, context_params.birthLat, context_params.birthLng, context_params.birthTimeZoneOffset).then(function (result) {
-                let speech = 'Here is the natal chart of the person born on ' +
-                    (utils.withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString('en-US', {month: "long", day: "numeric"}) : birthDay);
-                if (birthTime && birthTime !== 'unknown') speech += ' at ' +
-                    new Date(birthDay + ' ' + birthTime).toLocaleString('en-US', {hour: 'numeric', hour12: true, minute: 'numeric'});
-                if (birthPlaceFullName) speech += ' in ' + birthPlaceFullName;
+                let spoken_date = (utils.withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString(locale, {month: "long", day: "numeric"}) : birthDay);
+                let speech = i18n.__("NATAL_CHART_OF_PERSON_BORN_ON", spoken_date);
+                if (birthTime && birthTime !== 'unknown') {
+                    let spoken_time = new Date(birthDay + ' ' + birthTime).toLocaleString(locale, {hour: 'numeric', hour12: true, minute: 'numeric'});
+                    speech += i18n.__("AT_TIME", spoken_time);
+                }
+                if (spoken_birth_place) speech += i18n.__("IN_PLACE", spoken_birth_place);
                 speech += ': \n';
                 let missing = '';
                 result.forEach((characteristicInSign) => {
                     if (characteristicInSign.sign.includes('-')) {
                         missing += characteristicInSign.characteristic + ', ';
                     } else {
-                        speech += utils.speak_characteristic(characteristicInSign.characteristic) + ' is in ' + characteristicInSign.sign + '.\n';
+                        speech += i18n.__("OBJECT_IN_SIGN", i18n.__(characteristicInSign.characteristic), i18n.__(characteristicInSign.sign));
                     }
                 });
-                if (missing !== '') speech += 'Planets that are not mentioned require time or place of birth. Those include ' + missing + 'Ascendant, Midheaven and the other houses.';
+                if (missing !== '') speech += i18n.__("MISSING_OBJECTS", missing);
                 console.log('tryToSpeakChartWithParams - Full Chart - return speech - ', speech);
                 let conv = agent.conv();
                 conv.close(speech);
@@ -187,22 +192,21 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                             if (!birthTime) return askForBirthTime(agent);
                             if (!birthPlace) return askForBirthPlace(agent);
                             let whats_missing = '';
-                            if (birthTime === 'unknown') whats_missing = 'time ';
+                            if (birthTime === 'unknown') whats_missing = i18n.__("TIME");
                             if (birthPlace === 'unknown') {
-                                if (whats_missing !== '') whats_missing += " and ";
-                                whats_missing += 'place';
+                                if (whats_missing !== '') whats_missing += i18n.__("AND");
+                                whats_missing += i18n.__("PLACE");
                             }
-                            speech = 'Apologies, I checked again for you, but I really need to know ' + whats_missing + ' of birth. Try to get this information and come back to me.';
+                            speech = i18n.__("MISSING_INFO", whats_missing);
                         } else {
-                            speech = 'The ' + requested_planet.charAt(0).toUpperCase() + requested_planet.slice(1) + ' sign of a person born on ' +
-                                (utils.withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString('en-US', {
-                                    month: "long",
-                                    day: "numeric"
-                                }) : birthDay);
-                            if (birthTime && birthTime !== 'unknown') speech += ' at ' +
-                                new Date(birthDay + ' ' + birthTime).toLocaleString('en-US', {hour: 'numeric', hour12: true, minute: 'numeric'});
-                            if (birthPlaceFullName) speech += ' in ' + birthPlaceFullName;
-                            speech += ' is ' + characteristicInSign.sign;
+                            let spoken_planet = i18n.__(requested_planet.charAt(0).toUpperCase() + requested_planet.slice(1));
+                            let spoken_date = utils.withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString(locale, {month: "long",day: "numeric"}) : birthDay;
+                            if (birthTime && birthTime !== 'unknown') {
+                                let spoken_time = new Date(birthDay + ' ' + birthTime).toLocaleString(locale, {hour: 'numeric', hour12: true, minute: 'numeric'});
+                                spoken_date += i18n.__("AT_TIME", spoken_time);
+                            }
+                            if (spoken_birth_place) spoken_date += i18n.__("IN_PLACE", spoken_birth_place);
+                            speech = i18n.__("PLANET_SIGN_OF_PERSON_BORN_ON", spoken_planet, spoken_date, i18n.__(characteristicInSign.sign));
                             console.log('PlanetSign return speech - ', speech);
                         }
                         let conversation = agent.conv();
@@ -221,7 +225,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     intentMap.set('Birth Day Intent - Confirm Date', tryToSpeakChart);
     intentMap.set('Birth Year Intent', askToConfirmOrForYear);
     intentMap.set('Birth Year Intent - Confirm Date', tryToSpeakChart);
-    intentMap.set('Birth Time Intent', tryToSpeakChart);
+    intentMap.set('Birth Time Intent - Confirm Time', tryToSpeakChart);
     intentMap.set('Birth Place Intent', location_service.confirmBirthPlace);
     intentMap.set('Birth Place Intent - Confirm Place', tryToSpeakChart);
     intentMap.set('I Dont Know Intent', handleIDontKnowResponse);

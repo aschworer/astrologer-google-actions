@@ -37,7 +37,7 @@ module.exports = {
                     });
                 });
                 return resolveTimezone(latitude, longitude, locale).then(function (gmtOffset) {
-                    let return_speech = i18n.__("IS_IT_PLACE", ((is_country) ? 'country ' : '') + fullname);
+                    let return_speech = i18n.__("IS_IT", ((is_country) ? i18n.__("COUNTRY") : '') + fullname);
                     console.log('confirmBirthPlace return speech - ', return_speech);
                     agent.add(return_speech);
                     agent.add(yes_sugg);

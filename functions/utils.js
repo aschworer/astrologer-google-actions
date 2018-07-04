@@ -8,10 +8,7 @@ module.exports = {
     },
 
     isSun: function (requested_planet) {
-        requested_planet = requested_planet.toLowerCase();
-        return 'sun' === requested_planet
-            || 'zodiac' === requested_planet || 'astrology' === requested_planet || 'astrological' === requested_planet// todo release - remove
-            ;
+        return 'sun' === requested_planet.toLowerCase();
     }
 
 };

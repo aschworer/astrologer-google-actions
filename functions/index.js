@@ -1,6 +1,8 @@
 /* eslint-disable linebreak-style,require-jsdoc,max-len */
 'use strict';
 
+const {SimpleResponse, Suggestions} = require("actions-on-google");
+
 const functions = require('firebase-functions');
 const {WebhookClient} = require('dialogflow-fulfillment');
 const {Card, Suggestion} = require('dialogflow-fulfillment');
@@ -14,12 +16,12 @@ i18n.configure({
     defaultLocale: 'en-US'
 });
 
-
 let utils = require('./utils');
 let location_service = require('./googleservices');
 let charts_service = require('./natalchartservices');
 console.log('--------------------------------deployed-----------------------------------------');
 
+// console.log(i18n.__('IS_IT_DATE', new Date('1990-01-01').toLocaleString('ru', {month: "long", day: "numeric", year: "numeric"})));
 // console.log(i18n.__("OBJECT_IN_SIGN", i18n.__('Lilith'), i18n.__('Scorpio')));
 exports.natal_charts_fulfillment = functions.https.onRequest((request, response) => {
     const agent = new WebhookClient({request, response});
@@ -34,8 +36,10 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     const time_sugg = new Suggestion(i18n.__("TIME_EXAMPLE"));
     const city_sugg = new Suggestion(i18n.__("CITY_EXAMPLE"));
     const country_sugg = new Suggestion(i18n.__("COUNTRY_EXAMPLE"));
-    const yes_sugg = new Suggestion(i18n.__("YES"));
-    const no_sugg = new Suggestion(i18n.__("NO"));
+    // const yes_sugg = new Suggestion(i18n.__("YES"));
+    const yes_sugg_conv = new Suggestions(i18n.__("YES"));
+    // const no_sugg = new Suggestion(i18n.__("NO"));
+    const no_sugg_conv = new Suggestions(i18n.__("NO"));
 
     console.log('Dialogflow Request body: LOCALE: ' + locale + ' ' + JSON.stringify(body));
 
@@ -74,13 +78,15 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         agent.add(i_dont_know_sugg);
     }
 
-    function confirmBirthDay(agent, birthDay) {
+    function confirmBirthDay(agent, birthDay, noYear) {
         agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'toConfirmBirthDate'}});
-        let return_speech = i18n.__('IS_IT_DATE', new Date(birthDay).toLocaleString(locale, {month: "long", day: "numeric", year: "numeric"}));
+        let return_speech = (noYear) ? i18n.__('IS_IT_DATE_NO_YEAR', birthDay) : i18n.__('IS_IT_DATE', birthDay);
         console.log('confirmBirthDay return speech - ', return_speech);
-        agent.add(return_speech);
-        agent.add(yes_sugg);
-        agent.add(no_sugg);
+        let conv = agent.conv();
+        conv.ask(new SimpleResponse({speech: return_speech, text: i18n.__('IS_IT', birthDay),}));
+        conv.ask(yes_sugg_conv);
+        conv.ask(no_sugg_conv);
+        agent.add(conv);
     }
 
     function askToConfirmOrForYear(agent) {
@@ -96,12 +102,12 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         if (!birthYear) {
             if (utils.withinAYearFromNow(birthDay)) {
                 if ('PlanetSign' === initialIntent && utils.isSun(contextParameters.planet)) {//2019-01-01, Sun sign
-                    return confirmBirthDay(agent, new Date(birthDay).toLocaleString(locale, {month: "long", day: "numeric"}));
+                    return confirmBirthDay(agent, birthDay.slice(6), true);
                 } else {//2019-01-01, Full chart
                     return askForBirthYear(agent);
                 }
             } else {//1985-01-01
-                return confirmBirthDay(agent, birthDay);
+                return confirmBirthDay(agent, birthDay, false);
             }
         } else {//2019-01-01, 1983
             if (birthYear < 1550 || birthYear > 2649) {
@@ -112,7 +118,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             } else {
                 let newBirthDay = birthYear + birthDay.substring(4, birthDay.length);
                 agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthDay: newBirthDay}});
-                return confirmBirthDay(agent, newBirthDay);
+                return confirmBirthDay(agent, newBirthDay, false);
             }
         }
     }
@@ -124,10 +130,6 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         if ('date' === askedFor) {
             return askForBirthDay(agent);
         } else if ('year' === askedFor) {
-            let planet = agent.parameters.planet.toLowerCase();
-            if ('PlanetSign' === context_parameters.initialIntent && utils.isSun(planet)) {//Sun sign
-                return confirmBirthDay(agent);
-            }
             return askForBirthYear(agent);
         } else if ('place' === askedFor) {
             agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthPlace: 'unknown'},});
@@ -150,44 +152,45 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         const birthPlace = (birthPlaceUnknown) ? 'unknown' : context_params.birthPlace;
         const spoken_birth_place = context_params.birthPlaceFullName;
         console.log('tryToSpeakChart() - day: ' + birthDay + ', time: ' + birthTime + ', place: ' + birthPlace + ', placeFullName: ' + spoken_birth_place);
-        if (!birthDay) {
-            return askForBirthDay(agent);
-        }
+        if (!birthDay) return askForBirthDay(agent);
         if ('FullChart' === context_params.initialIntent) {
             if (!birthTime) return askForBirthTime(agent);
             if (!birthPlace) return askForBirthPlace(agent);
             return charts_service.getChart(birthDay, (birthTime === 'unknown') ? null : birthTime, context_params.birthLat, context_params.birthLng, context_params.birthTimeZoneOffset).then(function (result) {
-                let spoken_date = (utils.withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString(locale, {month: "long", day: "numeric"}) : birthDay);
-                let speech = i18n.__("NATAL_CHART_OF_PERSON_BORN_ON", spoken_date);
-                if (birthTime && birthTime !== 'unknown') {
-                    let spoken_time = new Date(birthDay + ' ' + birthTime).toLocaleString(locale, {hour: 'numeric', hour12: true, minute: 'numeric'});
-                    speech += i18n.__("AT_TIME", spoken_time);
-                }
-                if (spoken_birth_place) speech += i18n.__("IN_PLACE", spoken_birth_place);
-                speech += ': \n';
+                let return_speech = i18n.__("NATAL_CHART");
+//  "NATAL_CHART_OF_PERSON_BORN_ON": "Here is the natal chart of the person born on %s",
+//  "PLANET_SIGN_OF_PERSON_BORN_ON": "The %s sign of a person born on %s is %s",
+                // let spoken_date = (utils.withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString(locale, {month: "long", day: "numeric"}) : birthDay);
+                // let return_speech = i18n.__("NATAL_CHART_OF_PERSON_BORN_ON", spoken_date);
+                // if (birthTime && birthTime !== 'unknown') {
+                //     let spoken_time = new Date(birthDay + ' ' + birthTime).toLocaleString(locale, {hour: 'numeric', hour12: true, minute: 'numeric'});
+                //     return_speech += i18n.__("AT_TIME", spoken_time);
+                // }
+                // if (spoken_birth_place) return_speech += i18n.__("IN_PLACE", spoken_birth_place);
+                // return_speech += ': \n';
                 let missing = '';
                 result.forEach((characteristicInSign) => {
                     if (characteristicInSign.sign.includes('-')) {
-                        missing += characteristicInSign.characteristic + ', ';
+                        missing += i18n.__(characteristicInSign.characteristic) + ', ';
                     } else {
-                        speech += i18n.__("OBJECT_IN_SIGN", i18n.__(characteristicInSign.characteristic), i18n.__(characteristicInSign.sign));
+                        return_speech += i18n.__("OBJECT_IN_SIGN", i18n.__(characteristicInSign.characteristic), i18n.__(characteristicInSign.sign));
                     }
                 });
-                if (missing !== '') speech += i18n.__("MISSING_OBJECTS", missing);
-                console.log('tryToSpeakChartWithParams - Full Chart - return speech - ', speech);
+                if (missing !== '') return_speech += i18n.__("MISSING_OBJECTS", missing);
+                console.log('tryToSpeakChartWithParams - Full Chart - return return_speech - ', return_speech);
                 let conv = agent.conv();
-                conv.close(speech);
+                conv.close(return_speech);
                 agent.add(conv);
             }).catch(function (error) {
                 console.error(error);
             });
         } else if ('PlanetSign' === context_params.initialIntent) {
             return charts_service.getChart(birthDay, (birthTime === 'unknown') ? null : birthTime, context_params.birthLat, context_params.birthLng, context_params.birthTimeZoneOffset).then(function (result) {
-                let speech;
                 let requested_planet = context_params.planet;
-                if (utils.isSun(requested_planet)) requested_planet = 'Sun';
+                // if (utils.isSun(requested_planet)) requested_planet = 'Sun';
                 result.forEach((characteristicInSign) => {
                     if (requested_planet.toUpperCase() === characteristicInSign.characteristic.toUpperCase()) {
+                        let return_speech;
                         if (characteristicInSign.sign.includes('-')) {
                             if (!birthTime) return askForBirthTime(agent);
                             if (!birthPlace) return askForBirthPlace(agent);
@@ -197,20 +200,21 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                                 if (whats_missing !== '') whats_missing += i18n.__("AND");
                                 whats_missing += i18n.__("PLACE");
                             }
-                            speech = i18n.__("MISSING_INFO", whats_missing);
+                            return_speech = i18n.__("MISSING_INFO", whats_missing);
                         } else {
                             let spoken_planet = i18n.__(requested_planet.charAt(0).toUpperCase() + requested_planet.slice(1));
-                            let spoken_date = utils.withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString(locale, {month: "long",day: "numeric"}) : birthDay;
-                            if (birthTime && birthTime !== 'unknown') {
-                                let spoken_time = new Date(birthDay + ' ' + birthTime).toLocaleString(locale, {hour: 'numeric', hour12: true, minute: 'numeric'});
-                                spoken_date += i18n.__("AT_TIME", spoken_time);
-                            }
-                            if (spoken_birth_place) spoken_date += i18n.__("IN_PLACE", spoken_birth_place);
-                            speech = i18n.__("PLANET_SIGN_OF_PERSON_BORN_ON", spoken_planet, spoken_date, i18n.__(characteristicInSign.sign));
-                            console.log('PlanetSign return speech - ', speech);
+                            // let birth_details = utils.withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString(locale, {month: "long",day: "numeric"}) : birthDay;
+                            // if (birthTime && birthTime !== 'unknown') {
+                            //     let spoken_time = new Date(birthDay + ' ' + birthTime).toLocaleString(locale, {hour: 'numeric', hour12: true, minute: 'numeric'});
+                            //     birth_details += i18n.__("AT_TIME", spoken_time);
+                            // }
+                            // if (spoken_birth_place) birth_details += i18n.__("IN_PLACE", spoken_birth_place);
+                            // return_speech = i18n.__("PLANET_SIGN", spoken_planet, birth_details, i18n.__(characteristicInSign.sign));
+                            return_speech = i18n.__("PLANET_SIGN", spoken_planet, i18n.__(characteristicInSign.sign));
+                            console.log('PlanetSign return return_speech - ', return_speech);
                         }
                         let conversation = agent.conv();
-                        conversation.close(speech);
+                        conversation.close(return_speech);
                         agent.add(conversation);
                     }
                 });

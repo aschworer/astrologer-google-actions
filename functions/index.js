@@ -102,7 +102,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         if (!birthYear) {
             if (utils.withinAYearFromNow(birthDay)) {
                 if ('PlanetSign' === initialIntent && utils.isSun(contextParameters.planet)) {//2019-01-01, Sun sign
-                    return confirmBirthDay(agent, birthDay.slice(6), true);
+                    return confirmBirthDay(agent, birthDay.slice(5), true);
                 } else {//2019-01-01, Full chart
                     return askForBirthYear(agent);
                 }
@@ -110,6 +110,11 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                 return confirmBirthDay(agent, birthDay, false);
             }
         } else {//2019-01-01, 1983
+            //todo fix me
+            if ('time' === contextParameters.askedFor) {
+                console.error("!!!!! ASKED FOR TIME, BUT PROCESSING AS YEAR");
+            }
+
             if (birthYear < 1550 || birthYear > 2649) {
                 let return_speech = i18n.__("DATE_RANGE_ERROR");
                 console.log('birthYear < 1550 || birthYear > 2649 return speech - ', return_speech);
@@ -139,6 +144,18 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             return tryToSpeakChartWithParams(true, false);
         }
         return tryToSpeakChartWithParams(false, false);
+    }
+
+    function handleNo(agent) {
+        let context_parameters = agent.getContext('conversation').parameters;
+        let askedFor = context_parameters.askedFor;
+        console.log('handleNo() - asked for: ' + askedFor);
+        if ('time' === askedFor) {
+            return askForBirthTime(agent);
+        } else
+        // if ('year' === askedFor) {
+            return askForBirthDay(agent);
+        // }
     }
 
     function tryToSpeakChart() {
@@ -229,6 +246,8 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     intentMap.set('Birth Day Intent - Confirm Date', tryToSpeakChart);
     intentMap.set('Birth Year Intent', askToConfirmOrForYear);
     intentMap.set('Birth Year Intent - Confirm Date', tryToSpeakChart);
+    intentMap.set('Birth Year Intent - Deny Date', handleNo);
+    intentMap.set('Birth Time Intent - no', handleNo);
     intentMap.set('Birth Time Intent - Confirm Time', tryToSpeakChart);
     intentMap.set('Birth Place Intent', location_service.confirmBirthPlace);
     intentMap.set('Birth Place Intent - Confirm Place', tryToSpeakChart);

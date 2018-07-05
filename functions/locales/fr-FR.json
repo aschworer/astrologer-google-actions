@@ -1,17 +1,18 @@
 {
   "WHATS_THE_DATE_OF_BIRTH": "Quelle est la date de naissance ?\n Par exemple, 1er janvier 1990.",
-  "WHATS_THE_YEAR_OF_BIRTH": "Quelle est l'année de naissance ? \nPar exemple, 1990.",
+  "WHATS_THE_YEAR_OF_BIRTH": "Quelle est l'année de naissance ? \nPar exemple, en 1990.",
   "WHATS_THE_TIME_OF_BIRTH": "Quelle est l'heure de naissance ? \nPar exemple, 9 heure du matin. \nSi vous n'êtes pas sûr, vous pouvez dire Je ne sais pas.",
   "WHATS_THE_PLACE_OF_BIRTH": "Quelle est la ville ou le pays de naissance? \nPar exemple, Paris. \nSi vous n'êtes pas sûr, vous pouvez dire Je ne sais pas.",
+  "WHATS_THE_PLACE_OF_BIRTH_ERROR": "Essayer enchor. Quelle est la ville ou le pays de naissance ? \nPar exemple, Paris. \nSi vous n'êtes pas sûr, vous pouvez dire Je ne sais pas.",
   "IS_IT_DATE": "<speak>Est-ce <say-as interpret-as='date' format='yyyy-MM-dd' detail='1'>%s</say-as>?</speak>",
   "IS_IT_DATE_NO_YEAR": "<speak>Est-ce <say-as interpret-as='date' format='MM-dd' detail='1'>%s</say-as>?</speak>",
   "IS_IT": "Est-ce %s ?",
-  "IN_COUNTRY": ", en ",
+  "IN_COUNTRY": ", ",
   "COUNTRY": " pays ",
 
   "FULL_DATE_EXAMPLE": "1er janvier 1990",
   "TIME_EXAMPLE": "Minuit",
-  "YEAR_EXAMPLE": "1990",
+  "YEAR_EXAMPLE": "en 1990",
   "CITY_EXAMPLE": "Toulouse",
   "COUNTRY_EXAMPLE": "France",
 
@@ -20,10 +21,10 @@
 
   "I_DONT_KNOW": "Je ne sais pas",
 
-  "NATAL_CHART": "Voilce le Thème Astral : \n\n",
-  "PLANET_SIGN": "%s en %s.\nJ'espère que vous êtes satisfait du résultat.\n À bientôt!",
-  "AT_TIME": " en %s",
-  "IN_PLACE": " en %s",
+  "NATAL_CHART": "Voici le Thème Astral : \n\n",
+  "PLANET_SIGN": "%s en %s.\nJ'espère que vous êtes satisfait du résultat.\nÀ bientôt!",
+  "AT_TIME": " à %s",
+  "IN_PLACE": " à %s",
   "OBJECT_IN_SIGN": "%s en %s.\n",
 
   "Sun": "Le Soleil",
@@ -47,7 +48,7 @@
   "House7": "Maison 7",
   "House8": "Maison 8",
   "House9": "Maison 9",
-  "House10": "Milieu du Ciel 10",
+  "House10": "Maison 10",
   "House11": "Maison 11",
   "House12": "Maison 12",
 
@@ -64,13 +65,13 @@
   "Aquarius": "Verseau",
   "Pisces": "Poissons",
 
-  "MISSING_OBJECTS": "Les planètes qui ne sont pas mentionnées nécessitent une heure ou un lieu de naissance. Ceux-ci incluent %s Ascendant, et les autres maisons.",
-  "MISSING_INFO": "Pardon, J'ai revérifié, mais j'ai vraiment besoin de savoir %s de naissance. Essayez d'obtenir cette information et revenez me voir plus tard.",
-  "TIME": "temps ",
-  "PLACE": "position",
-  "AND": " et ",
+  "MISSING_OBJECTS": "Les planètes qui ne sont pas mentionnées nécessitent une heure ou un lieu de naissance. Cela incluent %s l'Ascendant, et les autres maisons.",
+  "MISSING_INFO": "Pardon, j'ai revérifié et j'ai vraiment besoin de savoir %sde naissance. Essayez d'obtenir cette information et revenez me voir plus tard.",
+  "TIME": "l'heure ",
+  "PLACE": "le lieu ",
+  "AND": "et ",
 
   "DIDNT_CATCH_THAT": "Pardon. Je n'ai pas compris.",
-  "DATE_RANGE_ERROR": "Désolé, je ne peux que regarder pour l'année de naissance entre 1550 et 2649. Essayons encore une fois. Dites-moi l'année de naissance."
+  "DATE_RANGE_ERROR": "Désolé, je ne peux que regarder pour l'année de naissance entre 1550 et 2649. Essayons encore une fois de donner l'année de naissance."
 
 }

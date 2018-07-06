@@ -97,33 +97,35 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         console.log('askToConfirmOrForYear(): birth day - ' + birthDay + '; birth year - ' + birthYear);
         if (!birthDay) {
             agent.add(i18n.__('DIDNT_CATCH_THAT'));
-            return askForBirthDay(agent);
-        }
-        if (!birthYear) {
-            if (utils.withinAYearFromNow(birthDay)) {
-                if ('PlanetSign' === initialIntent && utils.isSun(contextParameters.planet)) {//2019-01-01, Sun sign
-                    return confirmBirthDay(agent, birthDay.slice(5), true);
-                } else {//2019-01-01, Full chart
-                    return askForBirthYear(agent);
+            askForBirthDay(agent);
+        } else {
+            if (!birthYear) {
+                if (utils.withinAYearFromNow(birthDay)) {
+                    if ('PlanetSign' === initialIntent && utils.isSun(contextParameters.planet)) {//2019-01-01, Sun sign
+                        return confirmBirthDay(agent, birthDay.slice(5), true);
+                    } else {//2019-01-01, Full chart
+                        return askForBirthYear(agent);
+                    }
+                } else {//1985-01-01
+                    return confirmBirthDay(agent, birthDay, false);
                 }
-            } else {//1985-01-01
-                return confirmBirthDay(agent, birthDay, false);
-            }
-        } else {//2019-01-01, 1983
-            //todo fix me
-            if ('time' === contextParameters.askedFor) {
-                console.error("!!!!! ASKED FOR TIME, BUT PROCESSING AS YEAR");
-            }
+            } else {//2019-01-01, 1983
+                if ('time' === contextParameters.askedFor) {
+                    console.info("!!!!! ASKED FOR TIME, BUT PROCESSING AS YEAR");
+                    agent.add(i18n.__("TIME_OF_BIRTH_ERROR"));
+                    return askForBirthTime(agent);
+                }
 
-            if (birthYear < 1550 || birthYear > 2649) {
-                let return_speech = i18n.__("DATE_RANGE_ERROR");
-                console.log('birthYear < 1550 || birthYear > 2649 return speech - ', return_speech);
-                agent.add(return_speech);
-                agent.add(year_sugg);
-            } else {
-                let newBirthDay = birthYear + birthDay.substring(4, birthDay.length);
-                agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthDay: newBirthDay}});
-                return confirmBirthDay(agent, newBirthDay, false);
+                if (birthYear < 1550 || birthYear > 2649) {
+                    let return_speech = i18n.__("DATE_RANGE_ERROR");
+                    console.log('birthYear < 1550 || birthYear > 2649 return speech - ', return_speech);
+                    agent.add(return_speech);
+                    agent.add(year_sugg);
+                } else {
+                    let newBirthDay = birthYear + birthDay.substring(4, birthDay.length);
+                    agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthDay: newBirthDay}});
+                    return confirmBirthDay(agent, newBirthDay, false);
+                }
             }
         }
     }

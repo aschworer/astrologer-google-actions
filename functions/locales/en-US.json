@@ -2,6 +2,7 @@
   "WHATS_THE_DATE_OF_BIRTH": "What is the date of birth? \nFor example, 1st of January, 1990.",
   "WHATS_THE_YEAR_OF_BIRTH": "What is the year of birth? \nFor example, Year of birth is 1990.",
   "WHATS_THE_TIME_OF_BIRTH": "What is the time of birth? \nFor example, 9 PM. \nIf you are unsure, you can say I don't know.",
+  "TIME_OF_BIRTH_ERROR": "Sorry, I didn't catch the time. Let's try again.",
   "WHATS_THE_PLACE_OF_BIRTH": "What's the city, or country of birth? \nFor example, London. \nIf you are unsure, you can say I don't know.",
   "WHATS_THE_PLACE_OF_BIRTH_ERROR": "Let's try again. What's the city, or country of birth? \nIf you are unsure, you can say I don't know.",
   "IS_IT_DATE": "<speak>Is it <say-as interpret-as='date' format='yyyy-MM-dd' detail='1'>%s</say-as>?</speak>",

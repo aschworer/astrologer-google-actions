@@ -9,6 +9,12 @@ module.exports = {
 
     isSun: function (requested_planet) {
         return 'sun' === requested_planet.toLowerCase();
+    },
+
+    debug: function (message) {
+        if(true) {//if(isDebugMode)
+            console.log('.......................' + message);
+        }
     }
 
 };

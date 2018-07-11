@@ -11,7 +11,7 @@ process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
 const i18n = require('i18n');
 // const moment = require('moment');
 i18n.configure({
-    locales: ['en-US', 'de-DE', 'fr-FR', 'ru-RU'],
+    locales: ['en-US', 'fr-FR', 'fr-CA', 'ru-RU'],
     directory: __dirname + '/locales',
     defaultLocale: 'en-US'
 });
@@ -19,13 +19,13 @@ i18n.configure({
 let utils = require('./utils');
 let location_service = require('./googleservices');
 let charts_service = require('./natalchartservices');
-console.log('--------------------------------deployed-----------------------------------------');
+utils.debug('--------------------------------deployed-----------------------------------------');
 
 // console.log(i18n.__('IS_IT_DATE', new Date('1990-01-01').toLocaleString('ru', {month: "long", day: "numeric", year: "numeric"})));
 // console.log(i18n.__("OBJECT_IN_SIGN", i18n.__('Lilith'), i18n.__('Scorpio')));
 exports.natal_charts_fulfillment = functions.https.onRequest((request, response) => {
     const agent = new WebhookClient({request, response});
-    console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
+    utils.debug('Dialogflow Request headers: ' + JSON.stringify(request.headers));
     let body = request.body;
     let locale = body.originalRequest.data.user.locale;
 
@@ -41,12 +41,12 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     // const no_sugg = new Suggestion(i18n.__("NO"));
     const no_sugg_conv = new Suggestions(i18n.__("NO"));
 
-    console.log('Dialogflow Request body: LOCALE: ' + locale + ' ' + JSON.stringify(body));
-
+    utils.debug('Dialogflow Request body: ' + JSON.stringify(body));
+    console.info('LOCALE: ' + locale.toUpperCase());
     function askForBirthDay(agent) {
         agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'date'}});
         let return_speech = i18n.__('WHATS_THE_DATE_OF_BIRTH');
-        console.log('askForBirthDay return speech - ', return_speech);
+        utils.debug('return speech (askForBirthDay) - ' + return_speech);
         agent.add(return_speech);
         agent.add(full_date_sugg);
     }
@@ -54,7 +54,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     function askForBirthYear(agent) {
         agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'year'}});
         let return_speech = i18n.__('WHATS_THE_YEAR_OF_BIRTH');
-        console.log('askForBirthYear return speech - ', return_speech);
+        console.log('return speech (askForBirthYear) - ', return_speech);
         agent.add(return_speech);
         agent.add(year_sugg);
     }
@@ -62,7 +62,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     function askForBirthTime(agent) {
         agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'time'}});
         let return_speech = i18n.__('WHATS_THE_TIME_OF_BIRTH');
-        console.log('askForBirthTime() return speech - ', return_speech);
+        console.log('return speech (askForBirthTime) - ', return_speech);
         agent.add(return_speech);
         agent.add(time_sugg);
         agent.add(i_dont_know_sugg);
@@ -71,7 +71,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     function askForBirthPlace(agent) {
         agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'place'}});
         let return_speech = i18n.__('WHATS_THE_PLACE_OF_BIRTH');
-        console.log('askForBirthPlace return speech - ', return_speech);
+        console.log('return speech (askForBirthPlace) - ', return_speech);
         agent.add(return_speech);
         agent.add(city_sugg);
         agent.add(country_sugg);
@@ -81,7 +81,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     function confirmBirthDay(agent, birthDay, noYear) {
         agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'toConfirmBirthDate'}});
         let return_speech = (noYear) ? i18n.__('IS_IT_DATE_NO_YEAR', birthDay) : i18n.__('IS_IT_DATE', birthDay);
-        console.log('confirmBirthDay return speech - ', return_speech);
+        console.log('return speech (confirmBirthDay) - ', return_speech);
         let conv = agent.conv();
         conv.ask(new SimpleResponse({speech: return_speech, text: i18n.__('IS_IT', birthDay),}));
         conv.ask(yes_sugg_conv);
@@ -94,7 +94,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         const initialIntent = contextParameters.initialIntent;
         let birthDay = (agent.parameters.birthDay) ? agent.parameters.birthDay : contextParameters.birthDay;
         const birthYear = (agent.parameters.birthYear) ? agent.parameters.birthYear : contextParameters.birthYear;
-        console.log('askToConfirmOrForYear(): birth day - ' + birthDay + '; birth year - ' + birthYear);
+        utils.debug('confirming: birth day - ' + birthDay + '; birth year - ' + birthYear);
         if (!birthDay) {
             agent.add(i18n.__('DIDNT_CATCH_THAT'));
             askForBirthDay(agent);
@@ -111,7 +111,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                 }
             } else {//2019-01-01, 1983
                 if ('time' === contextParameters.askedFor) {
-                    console.info("!!!!! ASKED FOR TIME, BUT PROCESSING AS YEAR");
+                    console.warn("!!!!! ASKED FOR TIME, BUT PROCESSING AS YEAR");
                     agent.add(i18n.__("TIME_OF_BIRTH_ERROR"));
                     return askForBirthTime(agent);
                 }
@@ -133,7 +133,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     function handleIDontKnowResponse(agent) {
         let context_parameters = agent.getContext('conversation').parameters;
         let askedFor = context_parameters.askedFor;
-        console.log('handleIDontKnowResponse() - asked for: ' + askedFor);
+        utils.debug('i dont know for - ' + askedFor);
         if ('date' === askedFor) {
             return askForBirthDay(agent);
         } else if ('year' === askedFor) {
@@ -151,7 +151,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     function handleNo(agent) {
         let context_parameters = agent.getContext('conversation').parameters;
         let askedFor = context_parameters.askedFor;
-        console.log('handleNo() - asked for: ' + askedFor);
+        utils.debug('no for: ' + askedFor);
         if ('time' === askedFor) {
             return askForBirthTime(agent);
         } else
@@ -170,7 +170,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         const birthTime = (birthTimeUnknown) ? 'unknown' : context_params.birthTime;
         const birthPlace = (birthPlaceUnknown) ? 'unknown' : context_params.birthPlace;
         const spoken_birth_place = context_params.birthPlaceFullName;
-        console.log('tryToSpeakChart() - day: ' + birthDay + ', time: ' + birthTime + ', place: ' + birthPlace + ', placeFullName: ' + spoken_birth_place);
+        utils.debug('trying to get chart for bday: ' + birthDay + ', time: ' + birthTime + ', place: ' + birthPlace + ', placeFullName: ' + spoken_birth_place);
         if (!birthDay) return askForBirthDay(agent);
         if ('FullChart' === context_params.initialIntent) {
             if (!birthTime) return askForBirthTime(agent);
@@ -196,7 +196,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                     }
                 });
                 if (missing !== '') return_speech += i18n.__("MISSING_OBJECTS", missing);
-                console.log('tryToSpeakChartWithParams - Full Chart - return return_speech - ', return_speech);
+                console.log('FULL CHART RESPONSE  - ', return_speech);
                 let conv = agent.conv();
                 conv.close(return_speech);
                 agent.add(conv);
@@ -230,7 +230,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                             // if (spoken_birth_place) birth_details += i18n.__("IN_PLACE", spoken_birth_place);
                             // return_speech = i18n.__("PLANET_SIGN", spoken_planet, birth_details, i18n.__(characteristicInSign.sign));
                             return_speech = i18n.__("PLANET_SIGN", spoken_planet, i18n.__(characteristicInSign.sign));
-                            console.log('PlanetSign return return_speech - ', return_speech);
+                            console.log('PLANET SIGN RESPONSE - ', return_speech);
                         }
                         let conversation = agent.conv();
                         conversation.close(return_speech);

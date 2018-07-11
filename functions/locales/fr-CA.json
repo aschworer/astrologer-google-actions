@@ -1,9 +1,9 @@
 {
-  "WHATS_THE_DATE_OF_BIRTH": "Quelle est la date de naissance ? \n Par exemple, 1er janvier 1990.",
+  "WHATS_THE_DATE_OF_BIRTH": "Quelle est la date de naissance ?\n Par exemple, 1er janvier 1990.",
   "WHATS_THE_YEAR_OF_BIRTH": "Quelle est l'année de naissance ? \nPar exemple, en 1990.",
   "WHATS_THE_TIME_OF_BIRTH": "Quelle est l'heure de naissance ? \nPar exemple, 9 heure du matin. \nSi vous n'êtes pas sûr, vous pouvez dire Je ne sais pas.",
   "TIME_OF_BIRTH_ERROR": "Pardon, Essayer encore.",
-  "WHATS_THE_PLACE_OF_BIRTH": "Quelle est la ville ou le pays de naissance? \nPar exemple, Paris. \nSi vous n'êtes pas sûr, vous pouvez dire Je ne sais pas.",
+  "WHATS_THE_PLACE_OF_BIRTH": "Quelle est la ville ou le pays de naissance? \nPar exemple, Toronto. \nSi vous n'êtes pas sûr, vous pouvez dire Je ne sais pas.",
   "WHATS_THE_PLACE_OF_BIRTH_ERROR": "Essayer encore. Quelle est la ville ou le pays de naissance ? \nSi vous n'êtes pas sûr, vous pouvez dire Je ne sais pas.",
   "IS_IT_DATE": "<speak>Est-ce <say-as interpret-as='date' format='yyyy-MM-dd' detail='1'>%s</say-as>?</speak>",
   "IS_IT_DATE_NO_YEAR": "<speak>Est-ce <say-as interpret-as='date' format='MM-dd' detail='1'>%s</say-as>?</speak>",
@@ -14,8 +14,8 @@
   "FULL_DATE_EXAMPLE": "1er janvier 1990",
   "TIME_EXAMPLE": "Minuit",
   "YEAR_EXAMPLE": "en 1990",
-  "CITY_EXAMPLE": "Toulouse",
-  "COUNTRY_EXAMPLE": "France",
+  "CITY_EXAMPLE": "Toronto",
+  "COUNTRY_EXAMPLE": "Canadà",
 
   "YES": "Oui",
   "NO": "Non",

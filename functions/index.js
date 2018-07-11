@@ -41,8 +41,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     // const no_sugg = new Suggestion(i18n.__("NO"));
     const no_sugg_conv = new Suggestions(i18n.__("NO"));
 
-    utils.debug('Dialogflow Request body: ' + JSON.stringify(body));
-    console.info('LOCALE: ' + locale.toUpperCase());
+    utils.debug('Dialogflow Request body: ' + 'LOCALE: ' + locale.toUpperCase() + JSON.stringify(body));
     function askForBirthDay(agent) {
         agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'date'}});
         let return_speech = i18n.__('WHATS_THE_DATE_OF_BIRTH');

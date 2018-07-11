@@ -37,7 +37,7 @@ module.exports = {
                                 longitude = place.geometry.location.lng;
                                 fullname = getFullName(place);
                             } else {
-                                console.warn('filtering out because type = ' + actype, place);
+                                console.info('filtering out because type = ' + actype, place);
                             }
                         });
                     });

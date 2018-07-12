@@ -21,7 +21,7 @@ module.exports = {
         const city_sugg = new Suggestion(i18n.__("CITY_EXAMPLE"));
         const country_sugg = new Suggestion(i18n.__("COUNTRY_EXAMPLE"));
         let birth_place = (agent.parameters.birthCity) ? agent.parameters.birthCity : agent.parameters.birthCountry;
-        utils.debug("confirmBirthPlace(): birth place - " + birth_place);
+        console.log(birth_place + ", confirming as birth place");
         agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthPlace: birth_place}});
         return googleMapsClient.geocode({address: birth_place, language: locale.slice(3)}).asPromise()
             .then((response) => {
@@ -37,7 +37,7 @@ module.exports = {
                                 longitude = place.geometry.location.lng;
                                 fullname = getFullName(place);
                             } else {
-                                console.info('filtering out because type = ' + actype, place);
+                                utils.debug('filtering out because type = ' + actype, place);
                             }
                         });
                     });
@@ -48,7 +48,7 @@ module.exports = {
                     } else {
                         return resolveTimezone(latitude, longitude, locale).then(function (gmtOffset) {
                             let return_speech = i18n.__("IS_IT", ((is_country) ? i18n.__("COUNTRY") : '') + fullname);
-                            console.log('return speech (confirmBirthPlace) - ', return_speech);
+                            console.log(return_speech, ' (confirmBirthPlace)');
                             agent.add(return_speech);
                             agent.add(yes_sugg);
                             agent.add(no_sugg);

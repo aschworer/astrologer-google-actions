@@ -110,7 +110,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                 }
             } else {//2019-01-01, 1983
                 if ('time' === contextParameters.askedFor) {
-                    console.warn("!!!!! ASKED FOR TIME, BUT PROCESSING AS YEAR");
+                    console.log("!!!!! ASKED FOR TIME, BUT PROCESSING AS YEAR");
                     agent.add(i18n.__("TIME_OF_BIRTH_ERROR"));
                     return askForBirthTime(agent);
                 }

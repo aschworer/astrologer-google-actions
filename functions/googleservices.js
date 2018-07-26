@@ -31,7 +31,7 @@ module.exports = {
                     let is_country;
                     response.json.results.forEach((place) => {
                         place.address_components[0].types.forEach((actype) => {
-                            if ('country' === actype || 'locality' === actype) {
+                            if ('country' === actype || 'locality' === actype || 'Québec' === place) {
                                 if ('country' === actype) is_country = true;
                                 latitude = place.geometry.location.lat;
                                 longitude = place.geometry.location.lng;

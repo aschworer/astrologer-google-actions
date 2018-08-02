@@ -10,9 +10,7 @@
   },
   "scripts": {
     "login": "firebase login:ci",
-    "init": "firebase init",
-    "start": "firebase serve --only functions:natal-charts",
-    "deploy": "firebase deploy"
+    "deploy": "firebase deploy --only functions:natal-charts"
   },
   "dependencies": {
     "actions-on-google": "^2.1.3",

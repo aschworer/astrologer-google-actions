@@ -1,7 +1,7 @@
 {
   "name": "natal-charts",
   "description": "Natal Charts Fullfillment",
-  "version": "0.0.1",
+  "version": "1.0",
   "private": true,
   "license": "Apache Version 2.0",
   "author": "Google Inc.",
@@ -9,7 +9,7 @@
     "node": "~8.0"
   },
   "scripts": {
-    "login": "firebase login:ci",
+    "login": "firebase login --interactive",
     "deploy": "firebase deploy --only functions:natal-charts"
   },
   "dependencies": {

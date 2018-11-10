@@ -1,0 +1,149 @@
+{
+  "originalRequest": {
+    "source": "google",
+    "version": "2",
+    "data": {
+      "isInSandbox": true,
+      "surface": {
+        "capabilities": [
+          {
+            "name": "actions.capability.WEB_BROWSER"
+          },
+          {
+            "name": "actions.capability.MEDIA_RESPONSE_AUDIO"
+          },
+          {
+            "name": "actions.capability.SCREEN_OUTPUT"
+          },
+          {
+            "name": "actions.capability.AUDIO_OUTPUT"
+          }
+        ]
+      },
+      "requestType": "SIMULATOR",
+      "inputs": [
+        {
+          "rawInputs": [
+            {
+              "query": "Yes",
+              "inputType": "TOUCH"
+            }
+          ],
+          "arguments": [
+            {
+              "rawText": "Yes",
+              "textValue": "Yes",
+              "name": "text"
+            }
+          ],
+          "intent": "actions.intent.TEXT"
+        }
+      ],
+      "user": {
+        "userStorage": "{\"data\":{}}",
+        "lastSeen": "2018-11-09T06:39:08Z",
+        "locale": "en-US",
+        "userId": "ABwppHH7y6db5nbDF0_0KY9_QEf7zjH4VwHnsV4khMP2R67096PYm9hqyRJAx7lPNJ1u8Gg7iVONHdOYTN-bxw"
+      },
+      "conversation": {
+        "conversationId": "ABwppHFJxJwH6_-4XgWE8zkb4ikO_5KAKuTBxUG7O93cr1_BcnpsYyVCUNmOSSU1HOgxAf2SWmvTGK7b8WWm4w",
+        "type": "ACTIVE",
+        "conversationToken": "[\"birthplaceintent-followup\",\"conversation\"]"
+      },
+      "availableSurfaces": [
+        {
+          "capabilities": [
+            {
+              "name": "actions.capability.WEB_BROWSER"
+            },
+            {
+              "name": "actions.capability.SCREEN_OUTPUT"
+            },
+            {
+              "name": "actions.capability.AUDIO_OUTPUT"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "id": "255a693f-7851-4903-b876-6eb5dbce97a7",
+  "timestamp": "2018-11-09T06:53:47.178Z",
+  "lang": "en-us",
+  "result": {
+    "source": "agent",
+    "resolvedQuery": "Yes",
+    "speech": "",
+    "action": "BirthPlaceIntent.BirthPlaceIntent-yes",
+    "actionIncomplete": false,
+    "parameters": {},
+    "contexts": [
+      {
+        "name": "google_assistant_input_type_touch",
+        "parameters": {},
+        "lifespan": 0
+      },
+      {
+        "name": "birthplaceintent-followup",
+        "parameters": {
+          "birthCountry.original": "",
+          "birthCountry": "",
+          "birthCity.original": "New York",
+          "birthCity": "New York"
+        },
+        "lifespan": 1
+      },
+      {
+        "name": "actions_capability_screen_output",
+        "parameters": {},
+        "lifespan": 0
+      },
+      {
+        "name": "actions_capability_audio_output",
+        "parameters": {},
+        "lifespan": 0
+      },
+      {
+        "name": "actions_capability_web_browser",
+        "parameters": {},
+        "lifespan": 0
+      },
+      {
+        "name": "actions_capability_media_response_audio",
+        "parameters": {},
+        "lifespan": 0
+      },
+      {
+        "name": "conversation",
+        "parameters": {
+          "birthTime.original": "Midnight",
+          "birthDay": "1990-01-01",
+          "initialIntent": "FullChart",
+          "askedFor": "place",
+          "birthDay.original": "1st of January, 1990",
+          "birthCountry.original": "",
+          "birthCountry": "",
+          "birthTimeZoneOffset": "-05:00",
+          "birthCity.original": "New York",
+          "birthCity": "New York",
+          "birthTime": "00:00:00",
+          "initialIntent.original": ""
+        },
+        "lifespan": 4
+      }
+    ],
+    "metadata": {
+      "isFallbackIntent": "false",
+      "intentName": "Birth Place Intent - Confirm Place",
+      "isResponseToSlotfilling": false,
+      "intentId": "9bc96705-232d-4e2f-a5ff-204dbb3c1eac",
+      "webhookUsed": "true",
+      "webhookForSlotFillingUsed": "false",
+      "nluResponseTime": 51
+    },
+    "fulfillment": {
+      "speech": "Something went wrong. Please try again.",
+      "messages": [
+        {
+          "type": 0,
+          "speech": "Something went wrong. Please try

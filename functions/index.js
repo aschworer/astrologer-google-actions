@@ -42,8 +42,15 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     const no_sugg_conv = new Suggestions(i18n.__("NO"));
 
     utils.debug('Dialogflow Request body: ' + 'LOCALE: ' + locale.toUpperCase() + JSON.stringify(body));
+
+    body.result.contexts.forEach((context) => {
+        if (context.name === "conversation") {
+            utils.debug('Conversation context: ' + JSON.stringify(context));
+        }
+    });
+
     function askForBirthDay(agent) {
-        agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'date'}});
+        agent.context.set({name: 'conversation', lifespan: 5, parameters: {askedFor: 'date'}});
         let return_speech = i18n.__('WHATS_THE_DATE_OF_BIRTH');
         console.log(return_speech, ' (askForBirthDay)');
         agent.add(return_speech);
@@ -51,7 +58,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     }
 
     function askForBirthYear(agent) {
-        agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'year'}});
+        agent.context.set({name: 'conversation', lifespan: 5, parameters: {askedFor: 'year'}});
         let return_speech = i18n.__('WHATS_THE_YEAR_OF_BIRTH');
         console.log(return_speech, ' (askForBirthYear) ');
         agent.add(return_speech);
@@ -59,7 +66,16 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     }
 
     function askForBirthTime(agent) {
-        agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'time'}});
+        agent.context.set({name: 'conversation', lifespan: 5, parameters: {askedFor: 'time'}});
+        let return_speech = i18n.__('WHATS_THE_TIME_OF_BIRTH');
+        console.log(return_speech, ' (askForBirthTime)');
+        agent.add(return_speech);
+        agent.add(time_sugg);
+        agent.add(i_dont_know_sugg);
+    }
+
+    function askForBirthTimeWithContext(agent, context_params) {
+        agent.context.set({name: 'conversation', lifespan: 5, parameters: context_params});
         let return_speech = i18n.__('WHATS_THE_TIME_OF_BIRTH');
         console.log(return_speech, ' (askForBirthTime)');
         agent.add(return_speech);
@@ -68,7 +84,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     }
 
     function askForBirthPlace(agent) {
-        agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'place'}});
+        agent.context.set({name: 'conversation', lifespan: 5, parameters: {askedFor: 'place'}});
         let return_speech = i18n.__('WHATS_THE_PLACE_OF_BIRTH');
         console.log(return_speech, ' (askForBirthPlace)');
         agent.add(return_speech);
@@ -78,7 +94,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     }
 
     function confirmBirthDay(agent, birthDay, noYear) {
-        agent.setContext({name: 'conversation', lifespan: 5, parameters: {askedFor: 'toConfirmBirthDate'}});
+        agent.context.set({name: 'conversation', lifespan: 5, parameters: {askedFor: 'toConfirmBirthDate'}});
         let return_speech = (noYear) ? i18n.__('IS_IT_DATE_NO_YEAR', birthDay) : i18n.__('IS_IT_DATE', birthDay);
         console.log(return_speech, ' (confirmBirthDay)');
         let conv = agent.conv();
@@ -88,9 +104,40 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         agent.add(conv);
     }
 
+    function confirmBirthPlace(agent) {
+        // console.log('dob: ' + context_params.birthDay + "; tob: " + context_params.birthTime);
+        let birth_place = (agent.parameters.birthCity) ? agent.parameters.birthCity : agent.parameters.birthCountry;
+        if (birth_place === "" || birth_place === " ") {
+            console.log("country or city " + birth_place + " was not recognised by Dialogflow");
+            if ('time' === agent.context.get('conversation').parameters.askedFor) {
+                console.log("actually asked for time, not place...");
+                return askForBirthTimeWithContext(agent, {askedFor: 'time', birthPlace: ''});
+            } else {
+                birth_place = agent.parameters.birthPlace;
+            }
+        }
+        if (!birth_place) {
+            console.log(birth_place);
+            agent.add(i18n.__("WHATS_THE_PLACE_OF_BIRTH_ERROR"));
+            agent.add(city_sugg);
+            agent.add(country_sugg);
+            agent.context.set('conversation', 5, {askedFor: 'date', birthPlace: birth_place});
+        } else {
+            console.log(birth_place + ", confirming as birth place");
+            return location_service.confirmExactBirthPlace(agent, birth_place);
+        }
+    }
+
     function askToConfirmOrForYear(agent) {
-        let contextParameters = agent.getContext('conversation').parameters;
+        let contextParameters = agent.context.get('conversation').parameters;
         const initialIntent = contextParameters.initialIntent;
+
+        if ('time' === contextParameters.askedFor) {
+            console.log("actually asked for time, not date...");
+            agent.add(i18n.__("TIME_OF_BIRTH_ERROR"));
+            return askForBirthTime(agent);
+        }
+
         let birthDay = (agent.parameters.birthDay) ? agent.parameters.birthDay : contextParameters.birthDay;
         const birthYear = (agent.parameters.birthYear) ? agent.parameters.birthYear : contextParameters.birthYear;
         console.log(birthDay + ' (birth day); ' + birthYear + ' (birth year)');
@@ -122,7 +169,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                     agent.add(year_sugg);
                 } else {
                     let newBirthDay = birthYear + birthDay.substring(4, birthDay.length);
-                    agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthDay: newBirthDay}});
+                    agent.context.set({name: 'conversation', lifespan: 5, parameters: {birthDay: newBirthDay}});
                     return confirmBirthDay(agent, newBirthDay, false);
                 }
             }
@@ -130,7 +177,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     }
 
     function handleIDontKnowResponse(agent) {
-        let context_parameters = agent.getContext('conversation').parameters;
+        let context_parameters = agent.context.get('conversation').parameters;
         let askedFor = context_parameters.askedFor;
         console.log('I dont know, for - ' + askedFor);
         if ('date' === askedFor) {
@@ -138,17 +185,17 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         } else if ('year' === askedFor) {
             return askForBirthYear(agent);
         } else if ('place' === askedFor) {
-            agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthPlace: 'unknown'},});
+            agent.context.set({name: 'conversation', lifespan: 5, parameters: {birthPlace: 'unknown'},});
             return tryToSpeakChartWithParams(false, true);
         } else if ('time' === askedFor) {
-            agent.setContext({name: 'conversation', lifespan: 5, parameters: {birthTime: 'unknown'},});
+            agent.context.set({name: 'conversation', lifespan: 5, parameters: {birthTime: 'unknown'},});
             return tryToSpeakChartWithParams(true, false);
         }
         return tryToSpeakChartWithParams(false, false);
     }
 
     function handleNo(agent) {
-        let context_parameters = agent.getContext('conversation').parameters;
+        let context_parameters = agent.context.get('conversation').parameters;
         let askedFor = context_parameters.askedFor;
         console.log('No, for: ' + askedFor);
         if ('time' === askedFor) {
@@ -164,7 +211,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     }
 
     function tryToSpeakChartWithParams(birthTimeUnknown, birthPlaceUnknown) {
-        let context_params = agent.getContext('conversation').parameters;
+        let context_params = agent.context.get('conversation').parameters;
         const birthDay = context_params.birthDay;
         const birthTime = (birthTimeUnknown) ? 'unknown' : context_params.birthTime;
         const birthPlace = (birthPlaceUnknown) ? 'unknown' : context_params.birthPlace;
@@ -250,7 +297,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     intentMap.set('Birth Year Intent - Deny Date', handleNo);
     intentMap.set('Birth Time Intent - no', handleNo);
     intentMap.set('Birth Time Intent - Confirm Time', tryToSpeakChart);
-    intentMap.set('Birth Place Intent', location_service.confirmBirthPlace);
+    intentMap.set('Birth Place Intent', confirmBirthPlace);
     intentMap.set('Birth Place Intent - Confirm Place', tryToSpeakChart);
     intentMap.set('I Dont Know Intent', handleIDontKnowResponse);
     agent.handleRequest(intentMap);

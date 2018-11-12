@@ -73,6 +73,8 @@
   "AND": " and ",
 
   "DIDNT_CATCH_THAT": "Sorry, I didn't catch that.",
-  "DATE_RANGE_ERROR": "Sorry, I can only check for year of birth between 1550 and 2649. Let's try again. Tell me the year of birth."
+  "DATE_RANGE_ERROR": "Sorry, I can only check for year of birth between 1550 and 2649. Let's try again. Tell me the year of birth.",
+
+  "MAINTENANCE": "Sorry, I'm trying to fix something in Natal Charts at the moment. Please try again later."
 
 }

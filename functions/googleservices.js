@@ -22,7 +22,16 @@ module.exports = {
         const country_sugg = new Suggestion(i18n.__("COUNTRY_EXAMPLE"));
         let context_params = agent.context.get('conversation').parameters;
 
-        let dobtimestamp = Date.parse("2000" + context_params.birthDay.substring(4, context_params.birthDay.length) + " " + context_params.birthTime);
+        let dobtimestamp = "2000" + context_params.birthDay.substring(4, context_params.birthDay.length);
+        console.log(dobtimestamp);
+        if (context_params.birthTime && context_params.birthTime !== 'unknown') dobtimestamp += " " + context_params.birthTime;
+        console.log(dobtimestamp);
+        dobtimestamp = Math.floor(Date.parse(dobtimestamp) / 1000);
+        console.log(dobtimestamp);
+        console.log('timestamp: '   + dobtimestamp);
+
+        // agent.context.get('conversation').parameters['birthPlace'] = birth_place;
+        agent.context.set('conversation', 5, {'birthPlace': birth_place});
 
         return googleMapsClient.geocode({address: birth_place, language: locale.slice(3)}).asPromise()
             .then((response) => {
@@ -38,40 +47,47 @@ module.exports = {
                                 longitude = place.geometry.location.lng;
                                 fullname = getFullName(place);
                             } else {
-                                utils.debug(place + ' - filtering out because type = ' + actype);
+                                utils.debug(place.address_components[0].short_name + ' - filtering out because type = ' + actype);
                             }
                         });
                     });
                     if (!latitude) {
-                        agent.context.set('conversation', 5, {askedFor: 'date', birthPlace: birth_place});
+                        // agent.context.get('conversation').parameters['askedFor'] = 'place';
+                        agent.context.set('conversation', 5, {'askedFor': 'place'});
+                        // agent.context.set('conversation', 5, agent.context.get('conversation').parameters);
                         agent.add(i18n.__("WHATS_THE_PLACE_OF_BIRTH_ERROR"));
                         agent.add(city_sugg);
                         agent.add(country_sugg);
                     } else {
                         return resolveTimezone(latitude, longitude, locale, dobtimestamp)
                             .then(function (gmtOffset) {
-                            let return_speech = i18n.__("IS_IT", ((is_country) ? i18n.__("COUNTRY") : '') + fullname);
-                            console.log(return_speech, ' (confirmBirthPlace)');
-                            agent.add(return_speech);
-                            agent.add(yes_sugg);
-                            agent.add(no_sugg);
-                            let new_context_params = {
-                                askedFor: 'date', birthPlace: birth_place, birthLat: latitude, birthLng: longitude,
-                                birthPlaceFullName: fullname, birthTimeZoneOffset: gmtOffset
-                            };
-                            agent.context.set('conversation', 5, new_context_params);
-                        }).catch(function (error) {
-                            console.error('confirmBirthPlace: ', error);
-                            agent.context.set('conversation', 5, {askedFor: 'date', birthPlace: birth_place});
-                            agent.add(i18n.__("WHATS_THE_PLACE_OF_BIRTH_ERROR"));
-                            agent.add(city_sugg);
-                            agent.add(country_sugg);
-                        });
+                                let return_speech = i18n.__("IS_IT", ((is_country) ? i18n.__("COUNTRY") : '') + fullname);
+                                console.log(return_speech, ' (confirmBirthPlace)');
+                                agent.add(return_speech);
+                                agent.add(yes_sugg);
+                                agent.add(no_sugg);
+                                agent.context.set('conversation', 5, {'birthLat': latitude, 'birthLng': longitude,'birthPlace': fullname, 'birthTimeZoneOffset': gmtOffset});
+                                // agent.context.get('conversation').parameters['birthLat']=latitude;
+                                // agent.context.get('conversation').parameters['birthLng']=longitude;
+                                // agent.context.get('conversation').parameters['birthPlace']=fullname;
+                                // agent.context.get('conversation').parameters['birthTimeZoneOffset']=gmtOffset;
+                                // agent.context.set('conversation', 5, agent.context.get('conversation').parameters);
+                            }).catch(function (error) {
+                                console.error('confirmBirthPlace: ', error);
+                                agent.context.set('conversation', 5, {'askedFor': 'place'});
+                                // agent.context.get('conversation').parameters['askedFor'] = 'place';
+                                // agent.context.set('conversation', 5, agent.context.get('conversation').parameters);
+                                agent.add(i18n.__("WHATS_THE_PLACE_OF_BIRTH_ERROR"));
+                                agent.add(city_sugg);
+                                agent.add(country_sugg);
+                            });
                     }
                 }
             ).catch(function (error) {
                 console.error('confirmBirthPlace: ', error);
-                agent.context.set('conversation', 5, {askedFor: 'date', birthPlace: birth_place});
+                // agent.context.get('conversation').parameters['askedFor'] = 'place';
+                agent.context.set('conversation', 5, {'askedFor': 'place'});
+                // agent.context.set('conversation', 5, agent.context.get('conversation').parameters);
                 agent.add(i18n.__("WHATS_THE_PLACE_OF_BIRTH_ERROR"));
                 agent.add(city_sugg);
                 agent.add(country_sugg);
@@ -82,10 +98,9 @@ module.exports = {
 function resolveTimezone(latitude, longitude, locale, dobtimestamp) {
     return googleMapsClient.timezone({
         location: [latitude, longitude],
-        timestamp: Math.floor(dobtimestamp / 1000),
+        timestamp: dobtimestamp,
         language: locale.slice(3)
     }).asPromise().then((response) => {
-        console.log('timestamp: ' + dobtimestamp);
         let hours = Math.floor(response.json.rawOffset / 3600);
         let isNegative = hours < 0;
         hours = Math.abs(hours);

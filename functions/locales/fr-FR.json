@@ -73,6 +73,8 @@
   "AND": "et ",
 
   "DIDNT_CATCH_THAT": "Pardon. Je n'ai pas compris.",
-  "DATE_RANGE_ERROR": "Désolé, je ne peux que regarder pour l'année de naissance entre 1550 et 2649. Essayons encore une fois de donner l'année de naissance."
+  "DATE_RANGE_ERROR": "Désolé, je ne peux que regarder pour l'année de naissance entre 1550 et 2649. Essayons encore une fois de donner l'année de naissance.",
+
+  "MAINTENANCE": "Désolé, j'essaie de réparer certaines choses en ce moment. Merci de réessayer plus tard."
 
 }

@@ -30,7 +30,6 @@ module.exports = {
         console.log(dobtimestamp);
         console.log('timestamp: '   + dobtimestamp);
 
-        // agent.context.get('conversation').parameters['birthPlace'] = birth_place;
         agent.context.set('conversation', 5, {'birthPlace': birth_place});
 
         return googleMapsClient.geocode({address: birth_place, language: locale.slice(3)}).asPromise()
@@ -52,9 +51,7 @@ module.exports = {
                         });
                     });
                     if (!latitude) {
-                        // agent.context.get('conversation').parameters['askedFor'] = 'place';
                         agent.context.set('conversation', 5, {'askedFor': 'place'});
-                        // agent.context.set('conversation', 5, agent.context.get('conversation').parameters);
                         agent.add(i18n.__("WHATS_THE_PLACE_OF_BIRTH_ERROR"));
                         agent.add(city_sugg);
                         agent.add(country_sugg);
@@ -67,16 +64,9 @@ module.exports = {
                                 agent.add(yes_sugg);
                                 agent.add(no_sugg);
                                 agent.context.set('conversation', 5, {'birthLat': latitude, 'birthLng': longitude,'birthPlace': fullname, 'birthTimeZoneOffset': gmtOffset});
-                                // agent.context.get('conversation').parameters['birthLat']=latitude;
-                                // agent.context.get('conversation').parameters['birthLng']=longitude;
-                                // agent.context.get('conversation').parameters['birthPlace']=fullname;
-                                // agent.context.get('conversation').parameters['birthTimeZoneOffset']=gmtOffset;
-                                // agent.context.set('conversation', 5, agent.context.get('conversation').parameters);
                             }).catch(function (error) {
                                 console.error('confirmBirthPlace: ', error);
                                 agent.context.set('conversation', 5, {'askedFor': 'place'});
-                                // agent.context.get('conversation').parameters['askedFor'] = 'place';
-                                // agent.context.set('conversation', 5, agent.context.get('conversation').parameters);
                                 agent.add(i18n.__("WHATS_THE_PLACE_OF_BIRTH_ERROR"));
                                 agent.add(city_sugg);
                                 agent.add(country_sugg);

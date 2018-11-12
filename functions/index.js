@@ -68,10 +68,6 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     }
 
     function askForBirthTime(agent, context) {
-        // agent.context.get('conversation').parameters['askedFor'] = 'time';
-        // let paramsContext = agent.context.get('conversation').parameters;
-        // paramsContext["askedFor"] = "time";
-        // console.log(paramsContext);
         if (!context) context = {};
         context.askedFor = 'time';
         agent.context.set('conversation', 5, context);
@@ -83,48 +79,15 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     }
 
     function askForBirthPlace(agent, context) {
-        // let paramsContext = agent.context.get('conversation').parameters;
-        // paramsContext["askedFor"] = "place";
-        // let newParams;
-        // for (var key in paramsContext) {
-        // check if the property/key is defined in the object itself, not in parent
-        // if (paramsContext.hasOwnProperty(key)) {
-        //     console.log(key, paramsContext[key]);
-        //     if (typeof key === 'string' || key instanceof String){
-        //         console.log("string");
-        //     }
-        // }
-        // }
-        // console.log(paramsContext);
-        // agent.context.set('conversation', 5, paramsContext);
-        // console.log(agent.context.get('conversation').parameters);
-        /*let params = {'birthDay': '1990-01-01',
-            'initialIntent': 'FullChart',
-            'askedFor': 'place',
-            'birthDay.original': '1st of January, 1990',
-            'birthTime': 'unknown'};*/
-        // let params = {'askedFor': 'place', 'birthTime': 'unknown'};
         if (!context) context = {};
         context.askedFor = 'place';
-        // agent.context.set('conversation', 5, {'askedFor': 'place'}); //- worked
         agent.context.set('conversation', 5, context); //- worked
-        // let params = agent.context.get('conversation').parameters;
         let return_speech = i18n.__('WHATS_THE_PLACE_OF_BIRTH');
         console.log(return_speech, ' (askForBirthPlace)');
         agent.add(return_speech);
         agent.add(city_sugg);
         agent.add(country_sugg);
         agent.add(i_dont_know_sugg);
-
-        // agent.context.set({
-        //     'name':'conversation',
-        //     'lifespan': 5,
-        //     'parameters':params
-        // });
-
-        // agent.context.get('conversation').parameters
-
-        // agent.context.get('conversation').parameters["askedFor"] = "place";
     }
 
     function confirmBirthDay(agent, birthDay, noYear) {
@@ -173,11 +136,11 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             return askForBirthTime(agent);
         }
 
-        if ('place' === contextParameters.askedFor) {
-            console.log("actually asked for place, not date/year...");
-            agent.add(i18n.__("PLACE_OF_BIRTH_ERROR"));
-            return askForBirthPlace(agent);
-        }
+        // if ('place' === contextParameters.askedFor) {
+        //     console.log("actually asked for place, not date/year...");
+        //     agent.add(i18n.__("PLACE_OF_BIRTH_ERROR"));
+        //     return askForBirthPlace(agent);
+        // }
 
         let birthDay = (agent.parameters.birthDay) ? agent.parameters.birthDay : contextParameters.birthDay;
         const birthYear = (agent.parameters.birthYear) ? agent.parameters.birthYear : contextParameters.birthYear;
@@ -225,14 +188,8 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         } else if ('year' === askedFor) {
             return askForBirthYear(agent);
         } else if ('place' === askedFor) {
-            // utils.addToContext(agent, 'birthPlace', 'unknown');
-            // agent.context.set('conversation', 5, {'birthPlace': "unknown"});
-            // agent.context.set('conversation').parameters['birthPlace'] = "unknown";//todo
             return tryToSpeakChartWithParams(agent, false, true);
         } else if ('time' === askedFor) {
-            // agent.context.set('conversation', 5, {'birthTime': "unknown"});
-            // utils.addToContext(agent, 'birthTime', 'unknown');
-            // agent.context.get('conversation').parameters['birthTime'] = "unknown";//todo doesnt push the context, just adds some additional info, move that to down
             return tryToSpeakChartWithParams(agent, true, false);
         }
         return tryToSpeakChartWithParams(agent, false, false);
@@ -259,13 +216,9 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         const birthTime = (birthTimeUnknown) ? 'unknown' : context_params.birthTime;
         const birthPlace = (birthPlaceUnknown) ? 'unknown' : context_params.birthPlace;
         // const spoken_birth_place = context_params.birthPlaceFullName;
-        //SET THE CONTEXT HERE, BECAUSE IF THE CONTEXT IS ALREADY SET, THEN GET WILL NOT WORK - WTF???
         let context = {};
         if ('unknown' === birthTime) context.birthTime = "unknown";
         if ('unknown' === birthPlace) context.birthPlace = "unknown";
-        // if ('unknown' === birthPlace) agent.context.set('conversation', 5, {'birthPlace': "unknown"});
-        // if ('unknown' === birthTime) agent.context.set('conversation', 5, {'birthTime': "unknown"});
-        // if ('unknown' === birthPlace) agent.context.set('conversation', 5, {'birthPlace': "unknown"});
 
         utils.debug(birthDay + ' (bday), ' + birthTime + ' (time), ' + birthPlace + ' (place)');
         if (!birthDay) return askForBirthDay(agent);
@@ -297,7 +250,6 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                 let conv = agent.conv();
                 conv.close(return_speech);
                 agent.add(conv);
-                // agent.context.set('conversation', 5, agent.context.get('conversation').parameters);
             }).catch(function (error) {
                 console.error(error);
             });
@@ -320,8 +272,6 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                             return_speech = i18n.__("MISSING_INFO", whats_missing);
                         } else {
                             let spoken_planet = i18n.__(requested_planet.charAt(0).toUpperCase() + requested_planet.slice(1));
-                            // let birth_details = utils.withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString(locale, {month: "long",day: "numeric"}) : birthDay;
-                            // if (birthTime && birthTime !== 'unknown') {
                             //     let spoken_time = new Date(birthDay + ' ' + birthTime).toLocaleString(locale, {hour: 'numeric', hour12: true, minute: 'numeric'});
                             //     birth_details += i18n.__("AT_TIME", spoken_time);
                             // }
@@ -343,16 +293,10 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     }
 
     function maintanance(agent) {
-        // agent.context.get('conversation').parameters['askedFor'] = 'date';
-        // agent.context.set('conversation', 5, agent.context.get('conversation').parameters);
-        // let return_speech = i18n.__('WHATS_THE_DATE_OF_BIRTH');
-        // console.log(return_speech, ' (askForBirthDay)');
         let conversation = agent.conv();
         conversation.close(i18n.__("MAINTENANCE"));
         agent.add(conversation);
-        // agent.add(full_date_sugg);
     }
-
 
     let intentMap = new Map();
     // intentMap.set('Birth Day Intent', maintanance);

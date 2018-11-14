@@ -125,6 +125,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             // agent.context.set('conversation', 5, {'askedFor': 'place', 'birthPlace': birth_place});
         } else {
             console.log(birth_place + ", confirming as birth place");
+            //todo - check if birthday is present! google test
             return location_service.confirmExactBirthPlace(agent, birth_place);
         }
     }

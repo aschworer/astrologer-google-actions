@@ -24,7 +24,7 @@
 
   "NATAL_CHART": "Voici le Thème Astral",
   "PLANET_SIGN": "%s en %s.\nJ'espère que vous êtes satisfait du résultat.\nÀ bientôt!",
-  "AT_TIME": " à %s",
+//  "AT_TIME": " à %s",
   "IN_PLACE": "%s en %s",
   "OBJECT_IN_SIGN": "%s en %s.\n",
 
@@ -79,8 +79,6 @@
   "DATE_RANGE_ERROR": "Désolé, je ne peux que regarder pour l'année de naissance entre 1550 et 2649. Essayons encore une fois de donner l'année de naissance.",
 
   "MAINTENANCE": "Désolé, j'essaie de réparer certaines choses en ce moment. Merci de réessayer plus tard.",
-
-  "START_AGAIN": "Parler avec Thème Astral",
 
   "FULL_CHART": "Thème Astral complet",
   "VENUS_SIGN": "Le signe de Vénus",

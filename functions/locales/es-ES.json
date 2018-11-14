@@ -1,3 +1,36 @@
+{
+  "WHATS_THE_DATE_OF_BIRTH": "¿Cuál es la fecha de nacimiento? \nPor ejemplo, 1 de enero de 1990.",
+  "WHATS_THE_YEAR_OF_BIRTH": "¿Cuál es el año de nacimiento? \nPor ejemplo, el año de nacimiento es 1990.",
+  "WHATS_THE_TIME_OF_BIRTH": "¿Cuál es la hora de nacimiento? \n Por ejemplo, 9 PM. \n Si no está seguro, puede decir que no lo sé.",
+  "TIME_OF_BIRTH_ERROR": "Lo siento, no pude atrapar el tiempo. Intentemoslo de nuevo.",
+  "WHATS_THE_PLACE_OF_BIRTH": "¿Cuál es la ciudad o país de nacimiento? \nPor ejemplo, Londres. \nSi no está seguro, puede decir que no lo sé.",
+  "WHATS_THE_PLACE_OF_BIRTH_ERROR": "Intentemoslo de nuevo. ¿Cuál es la ciudad o país de nacimiento? \n Si no está seguro, puede decir que no lo sé.",
+  "IS_IT_DATE": "<speak>Lo es <say-as interpret-as='date' format='yyyy-MM-dd' detail='1'>%s</say-as>?</speak>",
+  "IS_IT_DATE_NO_YEAR": "<speak>Lo es <say-as interpret-as='date' format='MM-dd' detail='1'>%s</say-as>?</speak>",
+  "IS_IT": "Lo es %s?",
+  "IN_COUNTRY": ", ",
+  "COUNTRY": " país ",
+
+  "FULL_DATE_EXAMPLE": "1 de enero de 1990",
+  "TIME_EXAMPLE": "Medianoche",
+  "YEAR_EXAMPLE": "en 1990",
+  "CITY_EXAMPLE": "Barcelona",
+  "COUNTRY_EXAMPLE": "España",
+
+  "YES": "Sí",
+  "NO": "No",
+
+  "I_DONT_KNOW": "No sé",
+
+  "NATAL_CHART": "Aquí está la carta natal",
+  "PLANET_SIGN": "%s en %s.\nEspero que estés contento con el resultado.\n¡Vuelve pronto!",
+//  "AT_TIME": " à %s",
+  "IN_PLACE": "%s en %s",
+  "OBJECT_IN_SIGN": "%s en %s.\n",
+
+  "LEARN_MORE_ABOUT": "Aprende más ",
+  "GOOGLE_SEARCH_URL": "https://www.google.es/search?q=%s",
+
   "Sun": "Sol",
   "Moon": "Luna",
   "Mercury": "Mercurius",
@@ -10,4 +43,45 @@
   "Pluto": "Pluto",
   "Chiron": "Chiron",
   "Lilith": "Lilith",
-  "House1": "Ascendance (ou Maison I)",
+  "House1": "Ascendente (ou Casa 1)",
+  "House2": "Casa 2",
+  "House3": "Casa 3",
+  "House4": "Casa 4",
+  "House5": "Casa 5",
+  "House6": "Casa 6",
+  "House7": "Casa 7",
+  "House8": "Casa 8",
+  "House9": "Casa 9",
+  "House10": "Casa 10",
+  "House11": "Casa 11",
+  "House12": "Casa 12",
+
+  "Aries": "Aries",
+  "Taurus": "Tauro",
+  "Gemini": "Géminis",
+  "Cancer": "Cáncer",
+  "Leo": "Leo",
+  "Virgo": "Virgo",
+  "Libra": "Libra",
+  "Scorpio": "Escorpio",
+  "Sagittarius": "Sagitario",
+  "Capricorn": "Capricornio",
+  "Aquarius": "Acuario",
+  "Pisces": "Piscis",
+
+  "MISSING_OBJECTS": "Los planetas que no se mencionan requieren tiempo o lugar de nacimiento. Estos incluyen %s Ascendant, Midheaven y las otras casas.",
+  "MISSING_INFO": "Disculpas, volví a comprobarlo, pero realmente necesito saber %s de mi nacimiento. Trate de obtener esta información y volver a mí.",
+  "TIME": "hora ",
+  "PLACE": "lugar ",
+  "AND": "e ",
+
+  "DIDNT_CATCH_THAT": "Lo siento, no pude captar eso.",
+  "DATE_RANGE_ERROR": "Lo siento, solo puedo verificar el año de nacimiento entre 1550 y 2649. Intentemos nuevamente. Dime el año de nacimiento.",
+
+  "MAINTENANCE": "Lo siento, estoy tratando de arreglar algo en Natal Charts en este momento. Por favor, inténtelo de nuevo más tarde.",
+
+  "FULL_CHART": "Carta Natal completa",
+  "VENUS_SIGN": "Signo de venus",
+  "DONE": "Detener"
+
+}

@@ -1,11 +1,10 @@
 /* eslint-disable linebreak-style,require-jsdoc,max-len */
 'use strict';
 
-const {SimpleResponse, Suggestions} = require("actions-on-google");
-
+const {BasicCard, Button, SimpleResponse, Suggestions, RichResponse, LinkOutSuggestion, Image} = require("actions-on-google");
 const functions = require('firebase-functions');
 const {WebhookClient} = require('dialogflow-fulfillment');
-const {Card, Suggestion} = require('dialogflow-fulfillment');
+const {Suggestion} = require('dialogflow-fulfillment');//todo - do i need both????
 process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
 
 const i18n = require('i18n');
@@ -33,11 +32,13 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     const i_dont_know_sugg = new Suggestion(i18n.__('I_DONT_KNOW'));
     const year_sugg = new Suggestion(i18n.__("YEAR_EXAMPLE"));
     const full_date_sugg = new Suggestion(i18n.__("FULL_DATE_EXAMPLE"));
+    // const start_again = new Suggestion(i18n.__("FULL_DATE_EXAMPLE"));
+    const start_again = new Suggestions(i18n.__("FULL_CHART"), i18n.__("VENUS_SIGN"), i18n.__("DONE"));
     const time_sugg = new Suggestion(i18n.__("TIME_EXAMPLE"));
     const city_sugg = new Suggestion(i18n.__("CITY_EXAMPLE"));
     const country_sugg = new Suggestion(i18n.__("COUNTRY_EXAMPLE"));
     // const yes_sugg = new Suggestion(i18n.__("YES"));
-    const yes_sugg_conv = new Suggestions(i18n.__("YES"));
+    const yes_sugg_conv = new Suggestions(i18n.__("YES"));//todo
     // const no_sugg = new Suggestion(i18n.__("NO"));
     const no_sugg_conv = new Suggestions(i18n.__("NO"));
 
@@ -52,6 +53,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     function askForBirthDay(agent, context) {
         if (!context) context = {};
         context.askedFor = 'date';
+        context.birthYear = '';
         agent.context.set('conversation', 5, context);
         let return_speech = i18n.__('WHATS_THE_DATE_OF_BIRTH');
         console.log(return_speech, ' (askForBirthDay)');
@@ -115,11 +117,12 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             }
         }
         if (!birth_place) {
-            console.log(birth_place);
-            agent.add(i18n.__("WHATS_THE_PLACE_OF_BIRTH_ERROR"));
-            agent.add(city_sugg);
-            agent.add(country_sugg);
-            agent.context.set('conversation', 5, {'askedFor': 'place', 'birthPlace': birth_place});
+            // agent.add(i18n.__("WHATS_THE_PLACE_OF_BIRTH_ERROR"));
+            // console.log(birth_place);
+            return askForBirthPlace(agent);
+            // agent.add(city_sugg);
+            // agent.add(country_sugg);
+            // agent.context.set('conversation', 5, {'askedFor': 'place', 'birthPlace': birth_place});
         } else {
             console.log(birth_place + ", confirming as birth place");
             return location_service.confirmExactBirthPlace(agent, birth_place);
@@ -136,11 +139,11 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             return askForBirthTime(agent);
         }
 
-        // if ('place' === contextParameters.askedFor) {
-        //     console.log("actually asked for place, not date/year...");
-        //     agent.add(i18n.__("PLACE_OF_BIRTH_ERROR"));
-        //     return askForBirthPlace(agent);
-        // }
+        if ('place' === contextParameters.askedFor) {
+            console.log("actually asked for place, not date/year...");
+            // agent.add(i18n.__("WHATS_THE_PLACE_OF_BIRTH_ERROR"));
+            return askForBirthPlace(agent);
+        }
 
         let birthDay = (agent.parameters.birthDay) ? agent.parameters.birthDay : contextParameters.birthDay;
         const birthYear = (agent.parameters.birthYear) ? agent.parameters.birthYear : contextParameters.birthYear;
@@ -160,6 +163,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                     return confirmBirthDay(agent, birthDay, false);
                 }
             } else {//2019-01-01, 1983
+
                 if ('time' === contextParameters.askedFor) {
                     console.log("!!!!! ASKED FOR TIME, BUT PROCESSING AS YEAR");
                     agent.add(i18n.__("TIME_OF_BIRTH_ERROR"));
@@ -223,10 +227,9 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         utils.debug(birthDay + ' (bday), ' + birthTime + ' (time), ' + birthPlace + ' (place)');
         if (!birthDay) return askForBirthDay(agent);
         if ('FullChart' === context_params.initialIntent) {
-            if (!birthTime) return askForBirthTime(agent);
+            if (!birthTime) return askForBirthTime(agent, context);
             if (!birthPlace) return askForBirthPlace(agent, context);
             return charts_service.getChart(birthDay, (birthTime === 'unknown') ? null : birthTime, context_params.birthLat, context_params.birthLng, context_params.birthTimeZoneOffset).then(function (result) {
-                let return_speech = i18n.__("NATAL_CHART");
 //  "NATAL_CHART_OF_PERSON_BORN_ON": "Here is the natal chart of the person born on %s",
 //  "PLANET_SIGN_OF_PERSON_BORN_ON": "The %s sign of a person born on %s is %s",
                 // let spoken_date = (utils.withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString(locale, {month: "long", day: "numeric"}) : birthDay);
@@ -237,18 +240,48 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                 // }
                 // if (spoken_birth_place) return_speech += i18n.__("IN_PLACE", spoken_birth_place);
                 // return_speech += ': \n';
+
+                let conv = agent.conv();
+                conv.ask(new SimpleResponse({speech: i18n.__("NATAL_CHART")}));
+                let return_speech = '';
+                let the_buttons = [];
+                let suggestions = [];
                 let missing = '';
                 result.forEach((characteristicInSign) => {
                     if (characteristicInSign.sign.includes('-')) {
                         missing += i18n.__(characteristicInSign.characteristic) + ', ';
                     } else {
                         return_speech += i18n.__("OBJECT_IN_SIGN", i18n.__(characteristicInSign.characteristic), i18n.__(characteristicInSign.sign));
+                        the_buttons.push(new Button({
+                            title: i18n.__("OBJECT_IN_SIGN", i18n.__(characteristicInSign.characteristic), i18n.__(characteristicInSign.sign)),
+                            url: i18n.__("GOOGLE_SEARCH_URL", i18n.__("IN_PLACE", i18n.__(characteristicInSign.characteristic), i18n.__(characteristicInSign.sign))),
+                        }));
+                        // suggestions.push(new LinkOutSuggestion({
+                        //     name: i18n.__("OBJECT_IN_SIGN", i18n.__(characteristicInSign.characteristic), i18n.__(characteristicInSign.sign)),
+                        //     url: 'https://www.google.com/search?q=' + i18n.__("OBJECT_IN_SIGN", i18n.__(characteristicInSign.characteristic), i18n.__(characteristicInSign.sign)),
+                        // }));
                     }
                 });
                 if (missing !== '') return_speech += i18n.__("MISSING_OBJECTS", missing);
                 console.log('FULL CHART RESPONSE  - ', return_speech);
-                let conv = agent.conv();
-                conv.close(return_speech);
+                if (conv.surface.capabilities.has('actions.capability.SCREEN_OUTPUT') && the_buttons) {
+                    conv.ask(
+                        // new RichResponse({
+                        // items: [
+                        new BasicCard({
+                            // title: i18n.__("NATAL_CHART"),
+                            text: missing ? i18n.__("MISSING_OBJECTS", missing) : i18n.__("NATAL_CHART"),
+                            buttons: the_buttons,
+                            display: 'CROPPED',
+                        })
+                        // ]}
+                        // )
+                    );
+                } else {
+                    conv.ask(return_speech);
+                }
+                agent.context.delete('conversation');
+                conv.ask(start_again);
                 agent.add(conv);
             }).catch(function (error) {
                 console.error(error);
@@ -259,10 +292,11 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                 if (!requested_planet) requested_planet = 'Sun';
                 result.forEach((characteristicInSign) => {
                     if (requested_planet.toUpperCase() === characteristicInSign.characteristic.toUpperCase()) {
+                        let conversation = agent.conv();
                         let return_speech;
                         if (characteristicInSign.sign.includes('-')) {
-                            if (!birthTime) return askForBirthTime(agent);
-                            if (!birthPlace) return askForBirthPlace(agent);
+                            if (!birthTime) return askForBirthTime(agent, context);
+                            if (!birthPlace) return askForBirthPlace(agent, context);
                             let whats_missing = '';
                             if (birthTime === 'unknown') whats_missing = i18n.__("TIME");
                             if (birthPlace === 'unknown') {
@@ -270,20 +304,40 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                                 whats_missing += i18n.__("PLACE");
                             }
                             return_speech = i18n.__("MISSING_INFO", whats_missing);
+                            conversation.close(return_speech);
                         } else {
                             let spoken_planet = i18n.__(requested_planet.charAt(0).toUpperCase() + requested_planet.slice(1));
-                            //     let spoken_time = new Date(birthDay + ' ' + birthTime).toLocaleString(locale, {hour: 'numeric', hour12: true, minute: 'numeric'});
-                            //     birth_details += i18n.__("AT_TIME", spoken_time);
-                            // }
-                            // if (spoken_birth_place) birth_details += i18n.__("IN_PLACE", spoken_birth_place);
-                            // return_speech = i18n.__("PLANET_SIGN", spoken_planet, birth_details, i18n.__(characteristicInSign.sign));
                             return_speech = i18n.__("PLANET_SIGN", spoken_planet, i18n.__(characteristicInSign.sign));
                             console.log('PLANET SIGN RESPONSE - ', return_speech);
+                            conversation.ask(return_speech);
+
+                            let the_buttons = [
+                                new Button({
+                                    title: i18n.__("IN_PLACE", i18n.__(spoken_planet), i18n.__(characteristicInSign.sign)),
+                                    url: i18n.__("GOOGLE_SEARCH_URL", i18n.__("IN_PLACE", i18n.__(spoken_planet), i18n.__(characteristicInSign.sign))),
+                                }),
+                            ];
+                            if (conversation.surface.capabilities.has('actions.capability.SCREEN_OUTPUT')) {
+                                // conversation.close(new LinkOutSuggestion({
+                                //     name: spoken_planet + ' in ' + characteristicInSign.sign,
+                                //     url: 'https://www.google.com/search?q=' + spoken_planet + '+in+' + characteristicInSign.sign,
+                                // }));
+                                conversation.ask(new BasicCard({
+                                    text: i18n.__("LEARN_MORE_ABOUT", i18n.__("IN_PLACE", i18n.__(spoken_planet), i18n.__(characteristicInSign.sign))),
+                                    // text: '',
+                                    buttons: the_buttons,
+                                    // image: new Image({
+                                    //     url: 'http://astrologersdesk.com/wp-content/uploads/2018/11/scorpio_192.png',
+                                    //     alt: i18n.__(characteristicInSign.sign),
+                                    // }),
+                                    display: 'CROPPED',
+                                }));
+
+                            }
+                            agent.context.delete('conversation');
+                            conversation.ask(start_again);
                         }
-                        let conversation = agent.conv();
-                        conversation.close(return_speech);
                         agent.add(conversation);
-                        // agent.context.set('conversation', 5, agent.context.get('conversation').parameters);
                     }
                 });
             }).catch(function (error) {

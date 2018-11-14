@@ -16,7 +16,7 @@ module.exports = {
             LogType: 'None',
             Payload: JSON.stringify({'date': birthDay.replace(/-/g, "/"), 'lng': birthLng, 'lat': birthLat, 'time': birthTime, 'timezone': timezone})
         };
-        utils.debug("flatlib request - ");
+        // utils.debug("flatlib request - ");
         utils.debug(pullParams.Payload);
         return new Promise(
             (resolve, reject) => {

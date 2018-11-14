@@ -22,11 +22,13 @@
 
   "I_DONT_KNOW": "I don't know",
 
-  "NATAL_CHART": "Here is the Natal Chart: \n\n",
+  "NATAL_CHART": "Here is the Natal Chart",
   "PLANET_SIGN": "%s is in %s.\nI hope you are happy with the result.\n Come back soon!",
   "AT_TIME": " at %s",
-  "IN_PLACE": " in %s",
+  "IN_PLACE": "%s in %s",
   "OBJECT_IN_SIGN": "%s is in %s.\n",
+  "LEARN_MORE_ABOUT": "Learn more about ",
+  "GOOGLE_SEARCH_URL": "https://www.google.com/search?q=%s",
 
   "Sun": "The Sun",
   "Moon": "The Moon",
@@ -40,16 +42,16 @@
   "Pluto": "Pluto",
   "Chiron": "Chiron",
   "Lilith": "Lilith",
-  "House1": "Ascendant",
+  "House1": "Ascendant (or 1st House)",
   "House2": "2nd House",
   "House3": "3rd House",
-  "House4": "4th House",
+  "House4": "4th House (or IC, or Imum coeli)",
   "House5": "5th House",
   "House6": "6th House",
-  "House7": "7th House",
+  "House7": "7th House (or Descendant)",
   "House8": "8th House",
   "House9": "9th House",
-  "House10": "Midheaven",
+  "House10": "10th House (or Midheaven, or MC)",
   "House11": "11th House",
   "House12": "12th House",
 
@@ -75,6 +77,12 @@
   "DIDNT_CATCH_THAT": "Sorry, I didn't catch that.",
   "DATE_RANGE_ERROR": "Sorry, I can only check for year of birth between 1550 and 2649. Let's try again. Tell me the year of birth.",
 
-  "MAINTENANCE": "Sorry, I'm trying to fix something in Natal Charts at the moment. Please try again later."
+  "MAINTENANCE": "Sorry, I'm trying to fix something in Natal Charts at the moment. Please try again later.",
+
+  "START_AGAIN": "Start Natal Charts",
+
+  "FULL_CHART": "Full Chart",
+  "VENUS_SIGN": "Venus sign",
+  "DONE": "Stop"
 
 }

@@ -1,5 +1,5 @@
 {
-  "WHATS_THE_DATE_OF_BIRTH": "Quelle est la date de naissance ?\n Par exemple, 1er janvier 1990.",
+  "WHATS_THE_DATE_OF_BIRTH": "Quelle est la date de naissance ? \n Par exemple, 1er janvier 1990.",
   "WHATS_THE_YEAR_OF_BIRTH": "Quelle est l'année de naissance ? \nPar exemple, en 1990.",
   "WHATS_THE_TIME_OF_BIRTH": "Quelle est l'heure de naissance ? \nPar exemple, 9 heure du matin. \nSi vous n'êtes pas sûr, vous pouvez dire Je ne sais pas.",
   "TIME_OF_BIRTH_ERROR": "Pardon, Essayer encore.",
@@ -22,11 +22,14 @@
 
   "I_DONT_KNOW": "Je ne sais pas",
 
-  "NATAL_CHART": "Voici le Thème Astral : \n\n",
+  "NATAL_CHART": "Voici le Thème Astral",
   "PLANET_SIGN": "%s en %s.\nJ'espère que vous êtes satisfait du résultat.\nÀ bientôt!",
   "AT_TIME": " à %s",
-  "IN_PLACE": " à %s",
+  "IN_PLACE": "%s en %s",
   "OBJECT_IN_SIGN": "%s en %s.\n",
+
+  "LEARN_MORE_ABOUT": "En savoir plus sur ",
+  "GOOGLE_SEARCH_URL": "https://www.google.fr/search?q=%s",
 
   "Sun": "Le Soleil",
   "Moon": "La Lune",
@@ -49,7 +52,7 @@
   "House7": "Maison 7",
   "House8": "Maison 8",
   "House9": "Maison 9",
-  "House10": "Maison 10",
+  "House10": "Maison 10 (ou Milieu du Ciel)",
   "House11": "Maison 11",
   "House12": "Maison 12",
 
@@ -73,6 +76,14 @@
   "AND": "et ",
 
   "DIDNT_CATCH_THAT": "Pardon. Je n'ai pas compris.",
-  "DATE_RANGE_ERROR": "Désolé, je ne peux que regarder pour l'année de naissance entre 1550 et 2649. Essayons encore une fois de donner l'année de naissance."
+  "DATE_RANGE_ERROR": "Désolé, je ne peux que regarder pour l'année de naissance entre 1550 et 2649. Essayons encore une fois de donner l'année de naissance.",
+
+  "MAINTENANCE": "Désolé, j'essaie de réparer certaines choses en ce moment. Merci de réessayer plus tard.",
+
+  "START_AGAIN": "Parler avec Thème Astral",
+
+  "FULL_CHART": "Thème Astral complet",
+  "VENUS_SIGN": "Le signe de Vénus",
+  "DONE": "Cancel"
 
 }

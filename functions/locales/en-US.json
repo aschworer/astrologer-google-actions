@@ -24,7 +24,6 @@
 
   "NATAL_CHART": "Here is the Natal Chart",
   "PLANET_SIGN": "%s is in %s.\nI hope you are happy with the result.\n Come back soon!",
-//  "AT_TIME": " at %s",
   "IN_PLACE": "%s in %s",
   "OBJECT_IN_SIGN": "%s is in %s.\n",
   "LEARN_MORE_ABOUT": "Learn more about ",

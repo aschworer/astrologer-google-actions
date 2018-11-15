@@ -24,7 +24,6 @@
 
   "NATAL_CHART": "Aquí está la carta natal",
   "PLANET_SIGN": "%s en %s.\nEspero que estés contento con el resultado.\n¡Vuelve pronto!",
-//  "AT_TIME": " à %s",
   "IN_PLACE": "%s en %s",
   "OBJECT_IN_SIGN": "%s en %s.\n",
 

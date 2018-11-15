@@ -24,7 +24,6 @@
 
   "NATAL_CHART": "Вот ваша натальная карта",
   "PLANET_SIGN": "%s - %s.\n Надеюсь, вы довольны результатом.\n Буду ждать вас снова!",
-//  "AT_TIME": " в %s",
   "IN_PLACE": "%s %s",
   "OBJECT_IN_SIGN": "%s %s.\n",
   "LEARN_MORE_ABOUT": "Что значит ",

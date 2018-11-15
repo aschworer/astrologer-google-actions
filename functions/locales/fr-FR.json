@@ -24,7 +24,6 @@
 
   "NATAL_CHART": "Voici le Thème Astral",
   "PLANET_SIGN": "%s en %s.\nJ'espère que vous êtes satisfait du résultat.\nÀ bientôt!",
-//  "AT_TIME": " à %s",
   "IN_PLACE": "%s en %s",
   "OBJECT_IN_SIGN": "%s en %s.\n",
 

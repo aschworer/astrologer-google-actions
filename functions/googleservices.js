@@ -23,11 +23,8 @@ module.exports = {
         let context_params = agent.context.get('conversation').parameters;
 
         let dobtimestamp = "2000" + context_params.birthDay.substring(4, context_params.birthDay.length);
-        // console.log(dobtimestamp);
         if (context_params.birthTime && context_params.birthTime !== 'unknown') dobtimestamp += " " + context_params.birthTime;
-        // console.log(dobtimestamp);
         dobtimestamp = Math.floor(Date.parse(dobtimestamp) / 1000);
-        // console.log(dobtimestamp);
         console.log('timestamp: '   + dobtimestamp);
 
         agent.context.set('conversation', 5, {'birthPlace': birth_place});

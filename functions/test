@@ -1,11 +1,2 @@
-// const serv = require('./googleservices');
-const i18n = require('i18n');
-i18n.configure({
-    locales: ['en-US', 'fr-FR', 'fr-CA', 'ru-RU'],
-    directory: __dirname + '/locales',
-    defaultLocale: 'en-US'
-});
-// console.log(serv.confirmBirthPlace('Sydney', 'en_EN'));
-// console.log(i18n.__('IS_IT_DATE', '1990-01-01'));
-console.log(i18n.__('FULL_DATE_EXAMPLE'));
-// console.log("sdfadfgsdfg");
+let emailsender = require('./emailsender');
+emailsender.sendEmail('zainullina.a@gmail.com', 'chart', 'blah');

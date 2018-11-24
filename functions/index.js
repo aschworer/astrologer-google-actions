@@ -18,6 +18,7 @@ i18n.configure({
 let utils = require('./utils');
 let location_service = require('./googleservices');
 let charts_service = require('./natalchartservices');
+let emailsender = require('./emailsender');
 console.log('--------------------------------deployed-----------------------------------------');
 
 // console.log(i18n.__('IS_IT_DATE', new Date('1990-01-01').toLocaleString('ru', {month: "long", day: "numeric", year: "numeric"})));
@@ -92,8 +93,10 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         agent.add(i_dont_know_sugg);
     }
 
-    function confirmBirthDay(agent, birthDay, noYear) {
-        agent.context.set('conversation', 5, {'askedFor': 'date'});
+    function confirmBirthDay(agent, birthDay, noYear, context) {
+        if (!context) context = {};
+        context.askedFor = 'date';
+        agent.context.set('conversation', 5, context); //- worked
         let return_speech = (noYear) ? i18n.__('IS_IT_DATE_NO_YEAR', birthDay) : i18n.__('IS_IT_DATE', birthDay);
         console.log(return_speech, ' (confirmBirthDay)');
         let conv = agent.conv();
@@ -130,7 +133,6 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
 
     function askToConfirmOrForYear(agent) {
         let contextParameters = agent.context.get('conversation').parameters;
-        const initialIntent = contextParameters.initialIntent;
 
         if ('time' === contextParameters.askedFor) {
             console.log("actually asked for time, not date/year...");
@@ -151,18 +153,18 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             agent.add(i18n.__('DIDNT_CATCH_THAT'));
             askForBirthDay(agent);
         } else {
-
             let year = (birthYear) ? birthYear : birthDay.substring(0, 4);
+            console.log(year);
             if (year < 1550 || year > 2649) {
                 let return_speech = i18n.__("DATE_RANGE_ERROR");
                 console.log(return_speech, " (askToConfirmOrForYear)");
                 agent.add(return_speech);
                 agent.add(year_sugg);
+                return;
             }
-
             if (!birthYear) {
                 if (utils.withinAYearFromNow(birthDay)) {
-                    if ('PlanetSign' === initialIntent && utils.isSun(contextParameters.planet)) {//2019-01-01, Sun sign
+                    if ('PlanetSign' === contextParameters.initialIntent && utils.isSun(contextParameters.planet)) {//2019-01-01, Sun sign
                         return confirmBirthDay(agent, birthDay.slice(5), true);
                     } else {//2019-01-01, Full chart
                         return askForBirthYear(agent);
@@ -172,8 +174,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                 }
             } else {//2019-01-01, 1983
                 let newBirthDay = birthYear + birthDay.substring(4, birthDay.length);
-                agent.context.set('conversation', 5, {'birthDay': newBirthDay});
-                return confirmBirthDay(agent, newBirthDay, false);
+                return confirmBirthDay(agent, newBirthDay, false, {'birthDay': newBirthDay});
             }
         }
     }
@@ -213,7 +214,6 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
         const birthDay = context_params.birthDay;
         const birthTime = (birthTimeUnknown) ? 'unknown' : context_params.birthTime;
         const birthPlace = (birthPlaceUnknown) ? 'unknown' : context_params.birthPlace;
-        // const spoken_birth_place = context_params.birthPlaceFullName;
         let context = {};
         if ('unknown' === birthTime) context.birthTime = "unknown";
         if ('unknown' === birthPlace) context.birthPlace = "unknown";
@@ -224,17 +224,6 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             if (!birthTime) return askForBirthTime(agent, context);
             if (!birthPlace) return askForBirthPlace(agent, context);
             return charts_service.getChart(birthDay, (birthTime === 'unknown') ? null : birthTime, context_params.birthLat, context_params.birthLng, context_params.birthTimeZoneOffset).then(function (result) {
-//  "NATAL_CHART_OF_PERSON_BORN_ON": "Here is the natal chart of the person born on %s",
-//  "PLANET_SIGN_OF_PERSON_BORN_ON": "The %s sign of a person born on %s is %s",
-                // let spoken_date = (utils.withinAYearFromNow(birthDay) ? new Date(birthDay).toLocaleString(locale, {month: "long", day: "numeric"}) : birthDay);
-                // let return_speech = i18n.__("NATAL_CHART_OF_PERSON_BORN_ON", spoken_date);
-                // if (birthTime && birthTime !== 'unknown') {
-                //     let spoken_time = new Date(birthDay + ' ' + birthTime).toLocaleString(locale, {hour: 'numeric', hour12: true, minute: 'numeric'});
-                //     return_speech += i18n.__("AT_TIME", spoken_time);
-                // }
-                // if (spoken_birth_place) return_speech += i18n.__("IN_PLACE", spoken_birth_place);
-                // return_speech += ': \n';
-
                 let conv = agent.conv();
                 conv.ask(new SimpleResponse({speech: i18n.__("NATAL_CHART")}));
                 let return_speech = '';
@@ -257,6 +246,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                     }
                 });
                 if (missing !== '') return_speech += i18n.__("MISSING_OBJECTS", missing);
+                emailsender.sendEmail('zainullina.a@gmail.com', 'chart', return_speech);//todo button
                 console.log('FULL CHART RESPONSE  - ', return_speech);
                 if (conv.surface.capabilities.has('actions.capability.SCREEN_OUTPUT') && the_buttons) {
                     conv.ask(

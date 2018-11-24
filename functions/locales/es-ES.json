@@ -3,7 +3,7 @@
   "WHATS_THE_YEAR_OF_BIRTH": "¿Cuál es el año de nacimiento? \nPor ejemplo, el año de nacimiento es 1990.",
   "WHATS_THE_TIME_OF_BIRTH": "¿Cuál es la hora de nacimiento? \n Por ejemplo, 9 PM. \n Si no está seguro, puede decir que no lo sé.",
   "TIME_OF_BIRTH_ERROR": "Lo siento, no pude atrapar el tiempo. Intentemoslo de nuevo.",
-  "WHATS_THE_PLACE_OF_BIRTH": "¿Cuál es la ciudad o país de nacimiento? \nPor ejemplo, Londres. \nSi no está seguro, puede decir que no lo sé.",
+  "WHATS_THE_PLACE_OF_BIRTH": "¿Cuál es la ciudad o país de nacimiento? \nPor ejemplo, Méjico. \nSi no está seguro, puede decir que no lo sé.",
   "WHATS_THE_PLACE_OF_BIRTH_ERROR": "Intentemoslo de nuevo. ¿Cuál es la ciudad o país de nacimiento? \n Si no está seguro, puede decir que no lo sé.",
   "IS_IT_DATE": "<speak>Lo es <say-as interpret-as='date' format='yyyy-MM-dd' detail='1'>%s</say-as>?</speak>",
   "IS_IT_DATE_NO_YEAR": "<speak>Lo es <say-as interpret-as='date' format='MM-dd' detail='1'>%s</say-as>?</speak>",
@@ -13,7 +13,7 @@
 
   "FULL_DATE_EXAMPLE": "1 de enero de 1990",
   "TIME_EXAMPLE": "Medianoche",
-  "YEAR_EXAMPLE": "en 1990",
+  "YEAR_EXAMPLE": "1990",
   "CITY_EXAMPLE": "Barcelona",
   "COUNTRY_EXAMPLE": "España",
 
@@ -34,13 +34,13 @@
   "Moon": "Luna",
   "Mercury": "Mercurius",
   "Venus": "Venus",
-  "Mars": "Mars",
+  "Mars": "Marte",
   "Jupiter": "Iupiter",
   "Saturn": "Saturnus",
   "Uranus": "Uranus",
   "Neptune": "Neptunus",
-  "Pluto": "Pluto",
-  "Chiron": "Chiron",
+  "Pluto": "Plutón",
+  "Chiron": "Quirón",
   "Lilith": "Lilith",
   "House1": "Ascendente (ou Casa 1)",
   "House2": "Casa 2",
@@ -79,7 +79,7 @@
 
   "MAINTENANCE": "Lo siento, estoy tratando de arreglar algo en Natal Charts en este momento. Por favor, inténtelo de nuevo más tarde.",
 
-  "WHAT_NEXT": "Que te gustaría hacer después?",
+  "WHAT_NEXT": "\n\nQue te gustaría hacer después?",
 
   "FULL_CHART": "Carta Natal completa",
   "VENUS_SIGN": "Signo de venus",

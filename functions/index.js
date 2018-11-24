@@ -1,7 +1,7 @@
 /* eslint-disable linebreak-style,require-jsdoc,max-len */
 'use strict';
 
-const {BasicCard, Button, SimpleResponse, Suggestions, RichResponse, LinkOutSuggestion, Image} = require("actions-on-google");
+const {BasicCard, Button, SimpleResponse, Suggestions, LinkOutSuggestion, Image} = require("actions-on-google");
 const functions = require('firebase-functions');
 const {WebhookClient} = require('dialogflow-fulfillment');
 const {Suggestion} = require('dialogflow-fulfillment');//todo - do i need both????
@@ -10,7 +10,7 @@ process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
 const i18n = require('i18n');
 // const moment = require('moment');
 i18n.configure({
-    locales: ['en-US', 'fr-FR', 'fr-CA', 'ru-RU'],
+    locales: ['en-US', 'fr-FR', 'fr-CA', 'ru-RU', 'es-ES'],
     directory: __dirname + '/locales',
     defaultLocale: 'en-US'
 });
@@ -93,11 +93,11 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     }
 
     function confirmBirthDay(agent, birthDay, noYear) {
-        agent.context.set('conversation', 5, {'askedFor': 'toConfirmBirthDate'});
+        agent.context.set('conversation', 5, {'askedFor': 'date'});
         let return_speech = (noYear) ? i18n.__('IS_IT_DATE_NO_YEAR', birthDay) : i18n.__('IS_IT_DATE', birthDay);
         console.log(return_speech, ' (confirmBirthDay)');
         let conv = agent.conv();
-        conv.ask(new SimpleResponse({speech: return_speech, text: i18n.__('IS_IT', birthDay),}));
+        conv.ask(new SimpleResponse({speech: return_speech, text: i18n.__('IS_IT', birthDay)}));
         conv.ask(yes_sugg_conv);
         conv.ask(no_sugg_conv);
         agent.add(conv);
@@ -106,28 +106,26 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     function confirmBirthPlace(agent) {
         // console.log('dob: ' + context_params.birthDay + "; tob: " + context_params.birthTime);
         let birth_place = (agent.parameters.birthCity) ? agent.parameters.birthCity : agent.parameters.birthCountry;
+        let context_parameters = agent.context.get('conversation').parameters;
+        let context = {};
+        if ('time' === context_parameters.askedFor) {
+            console.log("actually asked for time, not place...");
+            context.birthPlace = '';
+            return askForBirthTime(agent, context);
+        }
+        if ('date' === context_parameters.askedFor) {
+            console.log("actually asked for time, not place...");
+            context.birthPlace = '';
+            return askForBirthDay(agent, context);
+        }
+        if (!context_parameters.birthDay) return askForBirthDay(agent);
         if (birth_place === "" || birth_place === " ") {
-            console.log("country or city " + birth_place + " was not recognised by Dialogflow");
-            if ('time' === agent.context.get('conversation').parameters['askedFor']) {
-                console.log("actually asked for time, not place...");
-                agent.context.set('conversation', 5, {'birthPlace': ''});
-                return askForBirthTime(agent);
-            } else {
-                birth_place = agent.parameters.birthPlace;
-            }
+            console.log("country or city " + birth_place + " was not recognised by Dialogflow. Will try with GMaps...");
+            birth_place = agent.parameters.birthPlace;
         }
-        if (!birth_place) {
-            // agent.add(i18n.__("WHATS_THE_PLACE_OF_BIRTH_ERROR"));
-            // console.log(birth_place);
-            return askForBirthPlace(agent);
-            // agent.add(city_sugg);
-            // agent.add(country_sugg);
-            // agent.context.set('conversation', 5, {'askedFor': 'place', 'birthPlace': birth_place});
-        } else {
-            console.log(birth_place + ", confirming as birth place");
-            //todo - check if birthday is present! google test
-            return location_service.confirmExactBirthPlace(agent, birth_place);
-        }
+        if (!birth_place) return askForBirthPlace(agent);
+        console.log(birth_place + ", confirming as birth place");
+        return location_service.confirmExactBirthPlace(agent, birth_place);
     }
 
     function askToConfirmOrForYear(agent) {
@@ -148,11 +146,20 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
 
         let birthDay = (agent.parameters.birthDay) ? agent.parameters.birthDay : contextParameters.birthDay;
         const birthYear = (agent.parameters.birthYear) ? agent.parameters.birthYear : contextParameters.birthYear;
-        console.log(birthDay + ' (birth day); ' + birthYear + ' (birth year)');
+        console.log(contextParameters.initialIntent + "request: bday - " + birthDay + "; " + birthYear + ' (birth year)');
         if (!birthDay) {
             agent.add(i18n.__('DIDNT_CATCH_THAT'));
             askForBirthDay(agent);
         } else {
+
+            let year = (birthYear) ? birthYear : birthDay.substring(0, 4);
+            if (year < 1550 || year > 2649) {
+                let return_speech = i18n.__("DATE_RANGE_ERROR");
+                console.log(return_speech, " (askToConfirmOrForYear)");
+                agent.add(return_speech);
+                agent.add(year_sugg);
+            }
+
             if (!birthYear) {
                 if (utils.withinAYearFromNow(birthDay)) {
                     if ('PlanetSign' === initialIntent && utils.isSun(contextParameters.planet)) {//2019-01-01, Sun sign
@@ -164,23 +171,9 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                     return confirmBirthDay(agent, birthDay, false);
                 }
             } else {//2019-01-01, 1983
-
-                if ('time' === contextParameters.askedFor) {
-                    console.log("!!!!! ASKED FOR TIME, BUT PROCESSING AS YEAR");
-                    agent.add(i18n.__("TIME_OF_BIRTH_ERROR"));
-                    return askForBirthTime(agent);
-                }
-
-                if (birthYear < 1550 || birthYear > 2649) {
-                    let return_speech = i18n.__("DATE_RANGE_ERROR");
-                    console.log(return_speech, " (askToConfirmOrForYear)");
-                    agent.add(return_speech);
-                    agent.add(year_sugg);
-                } else {
-                    let newBirthDay = birthYear + birthDay.substring(4, birthDay.length);
-                    agent.context.set('conversation', 5, {'birthDay': newBirthDay});
-                    return confirmBirthDay(agent, newBirthDay, false);
-                }
+                let newBirthDay = birthYear + birthDay.substring(4, birthDay.length);
+                agent.context.set('conversation', 5, {'birthDay': newBirthDay});
+                return confirmBirthDay(agent, newBirthDay, false);
             }
         }
     }
@@ -282,6 +275,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                     conv.ask(return_speech);
                 }
                 agent.context.delete('conversation');
+                conv.ask(i18n.__("WHAT_NEXT"));
                 conv.ask(start_again);
                 agent.add(conv);
             }).catch(function (error) {
@@ -302,7 +296,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                             if (birthTime === 'unknown') whats_missing = i18n.__("TIME");
                             if (birthPlace === 'unknown') {
                                 if (whats_missing !== '') whats_missing += i18n.__("AND");
-                                whats_missing += i18n.__("PLACE");
+                                whats_missing += i18n.__("PLACE");//todo test this
                             }
                             return_speech = i18n.__("MISSING_INFO", whats_missing);
                             conversation.close(return_speech);
@@ -336,6 +330,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
 
                             }
                             agent.context.delete('conversation');
+                            conversation.ask(i18n.__("WHAT_NEXT"));
                             conversation.ask(start_again);
                         }
                         agent.add(conversation);
@@ -350,6 +345,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
     function maintanance(agent) {
         let conversation = agent.conv();
         conversation.close(i18n.__("MAINTENANCE"));
+        // conversation.close(i18n.__("Sorry, I'm trying to fix something in Natal Charts at the moment. Please try again later.\nИзвините, в данный момент Натальная Карта в починке. Попробуйте снова через какое-то время.\nDésolé, j'essaie de réparer certaines choses en ce moment. Merci de réessayer plus tard."));
         agent.add(conversation);
     }
 

@@ -7,7 +7,7 @@ const {Card, Suggestion} = require('dialogflow-fulfillment');
 const i18n = require('i18n');
 // const moment = require('moment');
 i18n.configure({
-    locales: ['en-US', 'fr-FR', 'fr-CA', 'ru-RU'],
+    locales: ['en-US', 'fr-FR', 'fr-CA', 'ru-RU', 'es-ES'],
     directory: __dirname + '/locales',
     defaultLocale: 'en-US'
 });
@@ -28,6 +28,10 @@ module.exports = {
         console.log('timestamp: '   + dobtimestamp);
 
         agent.context.set('conversation', 5, {'birthPlace': birth_place});
+
+        //weird behaviour for Barcelona fix
+        if (birth_place === 'Barcelona') birth_place = 'Barcelona, Spain';
+        if (birth_place === 'barcelona') birth_place = 'Barcelona, Spain';
 
         return googleMapsClient.geocode({address: birth_place, language: locale.slice(3)}).asPromise()
             .then((response) => {

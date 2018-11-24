@@ -1,11 +1,13 @@
 const sendgridemail = require('@sendgrid/mail');
-const MY_SENDGRID_API_KEY = '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';
-sendgridemail.setApiKey(MY_SENDGRID_API_KEY);
+let PropertiesReader = require('properties-reader');
+let properties = PropertiesReader('servicekeys.file');
+const sendgrid_key = properties.get('sendrid.api.key');
+sendgridemail.setApiKey(sendgrid_key);
 module.exports = {
     sendEmail: function (to, subj, text) {
         sendgridemail.send({
             to: to,
-            from: 'info@natalcharts.com',
+            from: 'info@astrologersdesk.com',
             subject: subj,
             text: text
         }).then((response) => {

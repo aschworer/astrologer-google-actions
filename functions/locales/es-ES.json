@@ -1,20 +1,20 @@
 {
   "WHATS_THE_DATE_OF_BIRTH": "¿Cuál es la fecha de nacimiento? \nPor ejemplo, 1 de enero de 1990.",
   "WHATS_THE_YEAR_OF_BIRTH": "¿Cuál es el año de nacimiento? \nPor ejemplo, el año de nacimiento es 1990.",
-  "WHATS_THE_TIME_OF_BIRTH": "¿Cuál es la hora de nacimiento? \n Por ejemplo, 9 PM. \n Si no está seguro, puede decir que no lo sé.",
-  "TIME_OF_BIRTH_ERROR": "Lo siento, no pude atrapar el tiempo. Intentemoslo de nuevo.",
-  "WHATS_THE_PLACE_OF_BIRTH": "¿Cuál es la ciudad o país de nacimiento? \nPor ejemplo, Méjico. \nSi no está seguro, puede decir que no lo sé.",
-  "WHATS_THE_PLACE_OF_BIRTH_ERROR": "Intentemoslo de nuevo. ¿Cuál es la ciudad o país de nacimiento? \n Si no está seguro, puede decir que no lo sé.",
-  "IS_IT_DATE": "<speak>Lo es <say-as interpret-as='date' format='yyyy-MM-dd' detail='1'>%s</say-as>?</speak>",
-  "IS_IT_DATE_NO_YEAR": "<speak>Lo es <say-as interpret-as='date' format='MM-dd' detail='1'>%s</say-as>?</speak>",
-  "IS_IT": "Lo es %s?",
+  "WHATS_THE_TIME_OF_BIRTH": "¿Cuál es la hora de nacimiento? \n Por ejemplo, 9 por la tarde. \n Si no está seguro, puede decir que no lo sé.",
+  "TIME_OF_BIRTH_ERROR": "Lo siento, no puedo entender la fecha. Pruebe de nuevo.",
+  "WHATS_THE_PLACE_OF_BIRTH": "¿Cuál es la ciudad o el país de nacimiento? \nPor ejemplo, Méjico. \nSi no está seguro, puede decir que no lo sé.",
+  "WHATS_THE_PLACE_OF_BIRTH_ERROR": "Pruebe de nuevo. ¿Cuál es la ciudad o el país de nacimiento? \n Si no está seguro, puede decir que no lo sé.",
+  "IS_IT_DATE": "<speak>Es <say-as interpret-as='date' format='yyyy-MM-dd' detail='1'>%s</say-as>?</speak>",
+  "IS_IT_DATE_NO_YEAR": "<speak>Es <say-as interpret-as='date' format='MM-dd' detail='1'>%s</say-as>?</speak>",
+  "IS_IT": "Es %s?",
   "IN_COUNTRY": ", ",
   "COUNTRY": " país ",
 
   "FULL_DATE_EXAMPLE": "1 de enero de 1990",
   "TIME_EXAMPLE": "Medianoche",
   "YEAR_EXAMPLE": "1990",
-  "CITY_EXAMPLE": "Barcelona",
+  "CITY_EXAMPLE": "Madrid",
   "COUNTRY_EXAMPLE": "España",
 
   "YES": "Sí",
@@ -27,7 +27,7 @@
   "IN_PLACE": "%s en %s",
   "OBJECT_IN_SIGN": "%s en %s.\n",
 
-  "LEARN_MORE_ABOUT": "Aprende más ",
+  "LEARN_MORE_ABOUT": "Aprender más ",
   "GOOGLE_SEARCH_URL": "https://www.google.es/search?q=%s",
 
   "Sun": "Sol",
@@ -42,7 +42,7 @@
   "Pluto": "Plutón",
   "Chiron": "Quirón",
   "Lilith": "Lilith",
-  "House1": "Ascendente (ou Casa 1)",
+  "House1": "Ascendente (o Casa 1)",
   "House2": "Casa 2",
   "House3": "Casa 3",
   "House4": "Casa 4",
@@ -68,16 +68,16 @@
   "Aquarius": "Acuario",
   "Pisces": "Piscis",
 
-  "MISSING_OBJECTS": "Los planetas que no se mencionan requieren tiempo o lugar de nacimiento. Estos incluyen %s Ascendant, Midheaven y las otras casas.",
-  "MISSING_INFO": "Disculpas, volví a comprobarlo, pero realmente necesito saber %s de mi nacimiento. Trate de obtener esta información y volver a mí.",
-  "TIME": "hora ",
-  "PLACE": "lugar ",
-  "AND": "e ",
+  "MISSING_OBJECTS": "Los planetas no mencionado requieren tiempo o lugar de nacimiento. Estan %s Ascendant, Medio Cielo y las otras casas.",
+  "MISSING_INFO": "Lo siento, he probado otra vez, pero tengo que conocer %sde nacimiento. Obtenga esta información y vuelva a mí.",
+  "TIME": "la hora ",
+  "PLACE": "el lugar ",
+  "AND": "y ",
 
-  "DIDNT_CATCH_THAT": "Lo siento, no pude captar eso.",
-  "DATE_RANGE_ERROR": "Lo siento, solo puedo verificar el año de nacimiento entre 1550 y 2649. Intentemos nuevamente. Dime el año de nacimiento.",
+  "DIDNT_CATCH_THAT": "Lo siento, no lo puedo entender.",
+  "DATE_RANGE_ERROR": "Lo siento, solo puedo trabajar con el año de nacimiento entre 1550 y 2649. Pruebe de nuevo. Digame el año de nacimiento.",
 
-  "MAINTENANCE": "Lo siento, estoy tratando de arreglar algo en Natal Charts en este momento. Por favor, inténtelo de nuevo más tarde.",
+  "MAINTENANCE": "Lo siento, reparo Natal Charts en este momento. Por favor, pruebe de nuevo más tarde.",
 
   "WHAT_NEXT": "\n\nQue te gustaría hacer después?",
 

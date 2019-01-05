@@ -1,2 +1,0 @@
-let emailsender = require('./emailsender');
-emailsender.sendEmail('zainullina.a@gmail.com', 'chart', 'blah');

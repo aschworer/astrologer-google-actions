@@ -246,7 +246,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
                     }
                 });
                 if (missing !== '') return_speech += i18n.__("MISSING_OBJECTS", missing);
-                emailsender.sendEmail('zainullina.a@gmail.com', 'chart', return_speech);//todo button
+                // emailsender.sendEmail('zainullina.a@gmail.com', 'chart', return_speech);//todo button
                 console.log('FULL CHART RESPONSE  - ', return_speech);
                 if (conv.surface.capabilities.has('actions.capability.SCREEN_OUTPUT') && the_buttons) {
                     conv.ask(

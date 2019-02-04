@@ -10,7 +10,7 @@ process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
 const i18n = require('i18n');
 // const moment = require('moment');
 i18n.configure({
-    locales: ['en-US', 'fr-FR', 'fr-CA', 'ru-RU', 'es-ES'],
+    locales: ['en-US', 'fr-FR', 'fr-CA', 'ru-RU', 'es-ES', 'es-US'],
     directory: __dirname + '/locales',
     defaultLocale: 'en-US'
 });
@@ -117,7 +117,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             return askForBirthTime(agent, context);
         }
         if ('date' === context_parameters.askedFor) {
-            console.log("actually asked for time, not place...");
+            console.log("actually asked for date, not place...");
             context.birthPlace = '';
             return askForBirthDay(agent, context);
         }
@@ -157,6 +157,7 @@ exports.natal_charts_fulfillment = functions.https.onRequest((request, response)
             console.log(year);
             if (year < 1550 || year > 2649) {
                 let return_speech = i18n.__("DATE_RANGE_ERROR");
+                //todo erase birth year here from context!
                 console.log(return_speech, " (askToConfirmOrForYear)");
                 agent.add(return_speech);
                 agent.add(year_sugg);

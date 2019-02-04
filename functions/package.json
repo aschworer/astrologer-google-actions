@@ -10,7 +10,7 @@
   },
   "scripts": {
     "login": "firebase login --interactive",
-    "deploy": "firebase deploy --only functions:natal_charts_fulfillment"
+    "deploy": "firebase deploy --project astrologer-64cb1 --only functions:natal_charts_fulfillment"
   },
   "dependencies": {
     "actions-on-google": "^2.4.1",
